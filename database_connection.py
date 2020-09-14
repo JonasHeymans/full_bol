@@ -5,7 +5,7 @@ import time
 
 logger = logging.getLogger('microservice_edc_pull.database_connection')
 
-from microservice_edc_pull.constants.database_contants import *
+from database_contants import *
 
 class DatabaseSession:
     def __init__(self):
@@ -20,9 +20,9 @@ class DatabaseSession:
 
     def __enter__(self):
 
-        Session = sessionmaker(bind=self.engine)
+        session = sessionmaker(bind=self.engine)
         logger.debug('DatabaseSession initiated.')
-        self.session = Session()
+        self.session = session()
 
         return self.session
 

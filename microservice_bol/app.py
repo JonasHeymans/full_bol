@@ -1,9 +1,9 @@
 import logging
 import logging.config
 
-from microservice_bol_push.retailer.api.api import RetailerAPI
-from microservice_bol_push.retailer.models.models import BundlePrices,BundlePrice
-from microservice_bol_push.constants.constants import CancellationReasonCode
+from microservice_bol.retailer.api.api import RetailerAPI
+from microservice_bol.retailer.models.models import BundlePrices,BundlePrice
+from microservice_bol.constants.constants import CancellationReasonCode
 
 def main():
 
@@ -13,7 +13,7 @@ def main():
     orders = api.orders.list()
 
     for x in orders:
-        print(x.orderItems[0].cancelRequest)
+        print(x)
 
 
 

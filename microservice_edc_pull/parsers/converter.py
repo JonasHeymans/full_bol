@@ -13,8 +13,8 @@ logger = logging.getLogger('microservice_edc_pull.converter')
 
 class Converter:
 
-    @classmethod
-    def __convert_xml_to_list(cls, xml_file_name, xml_attribs=True) -> List:
+
+    def __convert_xml_to_list(self, xml_file_name, xml_attribs=True) -> List:
         with open(f"{RAW_PATH}{xml_file_name}.xml", "rb") as f:
             logger.debug('Starting conversion from XML to dict')
             start = time.time()
@@ -33,8 +33,8 @@ class Converter:
     created these functions to save my dict to a file so we wouldn't have to this conversion for every class in parser.
     '''
 
-    @classmethod
-    def __save_pickle(cls,file, file_path):
+
+    def __save_pickle(self,file, file_path):
         with open(file_path, 'wb') as f:
             pickle.dump(file, f)
             logger.info(f"Saved file to {file_path}")
@@ -47,8 +47,8 @@ class Converter:
     # TODO : further expand the convert function so it also can parse the 'values' property of properties.
     # TODO : Maybe the convert and loop-through function need to be merged? I don't see the difference between them.
 
-    @classmethod
-    def convert(cls, file, tablename:str) -> List:
+
+    def convert(self, file, tablename:str) -> List:
         logger.debug(f'Starting conversion of {tablename}')
         d = {'variants': ['id', 'type', 'subartnr', 'ean', 'stock', 'stockestimate','weeknr','nova', 'title','remaining','remaining_quantity'],
              'categories': ['id', 'title'],
@@ -64,16 +64,16 @@ class Converter:
             logger.warning('invalid name entered in covert function')
             raise Exception("Invalid name entered")
 
-        converted_file = cls.__loop_through_products(file, tablename, keys)
+        converted_file = self.__loop_through_products(file, tablename, keys)
 
         if tablename == 'pics':
-            return cls.__convert_pics(converted_file)
+            return self.__convert_pics(converted_file)
 
         if tablename =='bulletpoints':
-            return cls.__convert_bulletpoints(converted_file)
+            return self.__convert_bulletpoints(converted_file)
 
         if tablename =='properties':
-            return cls.__convert_properties(converted_file)
+            return self.__convert_properties(converted_file)
 
 
         logger.debug(f'Converted {tablename}')
@@ -81,16 +81,16 @@ class Converter:
 
         return converted_file
 
-    @classmethod
-    def __productid_generator(cls, file):
+
+    def __productid_generator(self, file):
         for x in file:
             yield x['id']
             yield x['id']
 
-    @classmethod
-    def __loop_through_products(cls, file, name, keys) -> List:
+
+    def __loop_through_products(self, file, name, keys) -> List:
         lst = []
-        productid_generator = cls.__productid_generator(file)
+        productid_generator = self.__productid_generator(file)
         for x in file:
             d = {}
             d['product_id'] = int(productid_generator.__next__())
@@ -145,8 +145,8 @@ class Converter:
 
         return lst
 
-    @classmethod
-    def __convert_date_format(cls, file):
+
+    def __convert_date_format(self, file):
         logger.info('Converting date format')
         lst = []
         for x in file:
@@ -158,8 +158,8 @@ class Converter:
             lst.append(d)
         return lst
 
-    @classmethod
-    def __convert_bulletpoints(cls, file):
+
+    def __convert_bulletpoints(self, file):
         lst = []
         for x in file:
             for y in x['bp']:
@@ -169,8 +169,8 @@ class Converter:
                 lst.append(d)
         return lst
 
-    @classmethod
-    def __convert_pics(cls,file):
+
+    def __convert_pics(self,file):
         lst = []
         for e in file:
             product_id = e['product_id']
@@ -193,8 +193,8 @@ class Converter:
     #  (select product_id from bulletpoints where length(bp)<2 group by product_id  ;).
     #  But might be the symptom of a larger issue.
     
-    @classmethod
-    def __convert_properties(cls,file):
+
+    def __convert_properties(self,file):
         lst = []
         for e in file:
             values = e['values']['value']
@@ -230,8 +230,8 @@ class Converter:
         return lst
 
 
-    @classmethod
-    def convert_stock(cls,file):
+
+    def convert_stock(self,file):
         lst = []
         for x in range(len(file)):
             x = dict(file[x])
@@ -244,8 +244,8 @@ class Converter:
         return lst
 
     # Maybe also add date of change to the dict?
-    @classmethod
-    def convert_prices_setup(cls, file):
+
+    def convert_prices_setup(self, file):
         lst = []
         for x in file:
             x = dict(x)
@@ -258,8 +258,8 @@ class Converter:
 
         return lst
 
-    @classmethod
-    def convert_prices(cls, file):
+
+    def convert_prices(self, file):
         lst = []
         for x in file:
             x = dict(x)
@@ -273,16 +273,16 @@ class Converter:
         return lst
 
 
-    @classmethod
-    def initial_convert(cls, filename):
+
+    def initial_convert(self, filename):
 
         #kinda dirty, might want to clean this up later
         if filename == 'stock':
             with open(f"{RAW_PATH}{filename}.xml", "rb") as f:
                 file = xmltodict.parse(f, xml_attribs=True)
         else:
-            file = cls.__convert_xml_to_list(filename)
+            file = self.__convert_xml_to_list(filename)
             file = Converter.__convert_date_format(file)
 
-        cls.__save_pickle(file, f"{CONVERTED_FILE_PATH}{filename}.pkl")
+        self.__save_pickle(file, f"{CONVERTED_FILE_PATH}{filename}.pkl")
         return file

@@ -7,9 +7,7 @@ from sqlalchemy.orm import relationship
 
 
 # TODO: is there something wrong with Categories?
-# TODO: I probably misuse (by overusing it) the @classmethod in this whole project, refactor so work with instances of the classes
-#  instead of with the classes themselves.
-# TODO: Maybe I should give my tables just their classnames
+# TODO: Maybe I should give my tables just their class names
 # TODO make separate table for measures (1xM)
 # TODO brands m2m is still broken
 # todo does not seem to include remaining and remaining_quantity in variants
