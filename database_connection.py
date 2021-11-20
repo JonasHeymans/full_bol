@@ -2,21 +2,23 @@ import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import time
+from decouple import config
+
 
 logger = logging.getLogger('microservice_edc_pull.database_connection')
 
-from database_contants import *
 
 class DatabaseSession:
     def __init__(self):
         self.connection = None
-        self.host = DATABASE_HOST
-        self.password = DATABASE_PASSWORD
-        self.user = DATABASE_USER
-        self.database = DATABASE_NAME
+        self.host = config('DATABASE_HOST')
+        self.password =  config('DATABASE_PASSWORD')
+        self.user =  config('DATABASE_USER')
+        self.database = config('DATABASE_NAME')
         self.starttime_connection = time.time()
-        self.engine = create_engine(f'mysql+mysqlconnector://{self.user}:{self.password}@{self.host}/'
+        self.engine = create_engine(f'postgres://{self.user}:{self.password}@{self.host}/'
                                     f'{self.database}',echo=False)
+
 
     def __enter__(self):
 

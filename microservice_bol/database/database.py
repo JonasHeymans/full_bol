@@ -1,9 +1,6 @@
 import logging
-import time
-from sqlalchemy import update
+from decouple import config
 
-
-from database_contants import DATABASE_NAME
 from database_connection import DatabaseSession
 from microservice_bol.parsers.bol_parser import Base
 
@@ -12,7 +9,7 @@ logger = logging.getLogger('microservice_bol.database')
 
 class Database:
     def __init__(self):
-        self.db_name = DATABASE_NAME
+        self.db_name = config('DATABASE_NAME')
 
 
     def __start_db_session(self):

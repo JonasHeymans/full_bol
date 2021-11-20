@@ -4,6 +4,25 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from scheduler import full_product_update, new_product_update, stock_update, price_update
 
+# TODO remove the dirty 'eval's everywhere
+# TODO remove the XML& pk files once I've pushed to db.
+# TODO Break up converter.__loop_through_products into multiple functions/refactor so that it is easier to read
+# TODO
+# TODO
+
+'''
+Timings of each request:
+
+
+- Full: weekly. To fill db initially, update prices / product properties and check for discontinued products.
+- New: Every Friday night. To add new products
+- Stock: Every hour. To keep stock up to date.
+- Discounts: weekly. To change awarded discounts. 
+
+'''
+
+
+
 if __name__ == '__main__':
     scheduler = BackgroundScheduler({'apscheduler.timezone': 'UTC'})
 
@@ -20,9 +39,9 @@ if __name__ == '__main__':
     scheduler.add_job(stock_update, 'interval', hours=1)
     scheduler.add_job(price_update('update'), 'interval', hours=1)
 
-    scheduler.add_job()
-    scheduler.add_job()
-    scheduler.add_job()
+    # scheduler.add_job()
+    # scheduler.add_job()
+    # scheduler.add_job()
 
     scheduler.start()
 

@@ -1,21 +1,21 @@
 import logging
-from datetime import datetime
-import time
-import xmltodict
 import pickle
+import time
+from datetime import datetime
 from typing import List
 
-from microservice_edc_pull.constants.save_locations import RAW_PATH,CONVERTED_FILE_PATH
+import xmltodict
 
+from microservice_edc_pull import BASE_PATH
 
 logger = logging.getLogger('microservice_edc_pull.converter')
 
+print(BASE_PATH)
 
 class Converter:
 
-
     def __convert_xml_to_list(self, xml_file_name, xml_attribs=True) -> List:
-        with open(f"{RAW_PATH}{xml_file_name}.xml", "rb") as f:
+        with open(f"{BASE_PATH}/files/feeds/{xml_file_name}.xml", "rb") as f:
             logger.debug('Starting conversion from XML to dict')
             start = time.time()
             my_dictionary = xmltodict.parse(f, xml_attribs=xml_attribs)
@@ -33,26 +33,23 @@ class Converter:
     created these functions to save my dict to a file so we wouldn't have to this conversion for every class in parser.
     '''
 
-
-    def __save_pickle(self,file, file_path):
+    def __save_pickle(self, file, file_path):
         with open(file_path, 'wb') as f:
             pickle.dump(file, f)
             logger.info(f"Saved file to {file_path}")
 
-        # with open(file_path, 'w') as f:
+        # with open(file_path, 'w') as f: Commented out, can remove?
         #     f.write(str(file))
-
-
 
     # TODO : further expand the convert function so it also can parse the 'values' property of properties.
     # TODO : Maybe the convert and loop-through function need to be merged? I don't see the difference between them.
 
-
-    def convert(self, file, tablename:str) -> List:
+    def convert(self, file, tablename: str) -> List:
         logger.debug(f'Starting conversion of {tablename}')
-        d = {'variants': ['id', 'type', 'subartnr', 'ean', 'stock', 'stockestimate','weeknr','nova', 'title','remaining','remaining_quantity'],
+        d = {'variants': ['id', 'type', 'subartnr', 'ean', 'stock', 'stockestimate', 'weeknr', 'nova', 'title',
+                          'remaining', 'remaining_quantity'],
              'categories': ['id', 'title'],
-             'properties': ['propid', 'property', 'valueid','value', 'values'],
+             'properties': ['propid', 'property', 'valueid', 'value', 'values'],
              'pics': ['pic'],
              'bulletpoints': ['bp']
              }
@@ -69,24 +66,20 @@ class Converter:
         if tablename == 'pics':
             return self.__convert_pics(converted_file)
 
-        if tablename =='bulletpoints':
+        if tablename == 'bulletpoints':
             return self.__convert_bulletpoints(converted_file)
 
-        if tablename =='properties':
+        if tablename == 'properties':
             return self.__convert_properties(converted_file)
-
 
         logger.debug(f'Converted {tablename}')
 
-
         return converted_file
-
 
     def __productid_generator(self, file):
         for x in file:
             yield x['id']
             yield x['id']
-
 
     def __loop_through_products(self, file, name, keys) -> List:
         lst = []
@@ -96,10 +89,11 @@ class Converter:
             d['product_id'] = int(productid_generator.__next__())
             logger.debug(f"Looping through {name} of {d['product_id']}")
             try:
+                # Could make this a lot easier by putting it into a dict?
                 if name == 'variants':
                     x = x['variants']['variant']
                 elif name == 'categories':
-                    name = name
+                    # name = name (Commenting this out since this does not seem to do anything.)
                     x = x['categories']['category']['cat']
                 elif name == 'properties':
                     x = x['properties']['prop']
@@ -142,9 +136,7 @@ class Converter:
                     logger.warning(f"Could not add {name} of {d['product_id']}, skipping")
                     continue
 
-
         return lst
-
 
     def __convert_date_format(self, file):
         logger.info('Converting date format')
@@ -158,7 +150,6 @@ class Converter:
             lst.append(d)
         return lst
 
-
     def __convert_bulletpoints(self, file):
         lst = []
         for x in file:
@@ -169,8 +160,7 @@ class Converter:
                 lst.append(d)
         return lst
 
-
-    def __convert_pics(self,file):
+    def __convert_pics(self, file):
         lst = []
         for e in file:
             product_id = e['product_id']
@@ -187,14 +177,12 @@ class Converter:
                 d['pic'] = e['pic']
         return lst
 
-
     # TODO: Still a bug in this function: some values get parsed by character instead of by string, resulting in
     #  single character values for bp. Issue seems to be limited to 32 products though
     #  (select product_id from bulletpoints where length(bp)<2 group by product_id  ;).
     #  But might be the symptom of a larger issue.
-    
 
-    def __convert_properties(self,file):
+    def __convert_properties(self, file):
         lst = []
         for e in file:
             values = e['values']['value']
@@ -221,22 +209,20 @@ class Converter:
                 d['valueid'] = e['valueid']
                 d['value'] = e['value']
                 if 'id' in values.keys():
-                    d['id']= values['id']
-                    d['title']= values['title']
+                    d['id'] = values['id']
+                    d['title'] = values['title']
                 elif 'unit' in values.keys():
                     d['unit'] = values['unit']
                     d['magnitude'] = values['magnitude']
                 lst.append(d)
         return lst
 
-
-
-    def convert_stock(self,file):
+    def convert_stock(self, file):
         lst = []
         for x in range(len(file)):
             x = dict(file[x])
             d1 = {'productid': 'product_id', 'variantid': 'variant_id', 'productnr': 'subartnr', 'ean': 'ean',
-                  'stock': 'stock', 'qty': 'stockestimate','week':'weeknr'}
+                  'stock': 'stock', 'qty': 'stockestimate', 'week': 'weeknr'}
             new = dict((d1[key], value) for (key, value) in x.items())
             new['stock'] = new['stock'].replace('J', 'Y')
             lst.append(new)
@@ -250,39 +236,36 @@ class Converter:
         for x in file:
             x = dict(x)
             x = {key: x[key] for key in x.keys() &
-                 {'productid', 'b2b', 'b2c','discount','your_price','artnr'}}
-            d1 = {'productid': 'product_id', 'b2b':'b2b','b2c':'b2c', 'artnr':'artnr',
-                  'discount':'discount_percentage', 'your_price':'buy_price'}
+                 {'productid', 'b2b', 'b2c', 'discount', 'your_price', 'artnr'}}
+            d1 = {'productid': 'product_id', 'b2b': 'b2b', 'b2c': 'b2c', 'artnr': 'artnr',
+                  'discount': 'discount_percentage', 'your_price': 'buy_price'}
             new = dict((d1[key], value) for (key, value) in x.items())
             lst.append(new)
 
         return lst
-
 
     def convert_prices(self, file):
         lst = []
         for x in file:
             x = dict(x)
             x = {key: x[key] for key in x.keys() &
-                 {'artnr', 'date', 'new_price','discount'}}
-            d1 = {'artnr': 'artnr', 'date':'update_date',
-                  'discount':'discount', 'new_price':'buy_price'}
+                 {'artnr', 'date', 'new_price', 'discount'}}
+            d1 = {'artnr': 'artnr', 'date': 'update_date',
+                  'discount': 'discount', 'new_price': 'buy_price'}
             new = dict((d1[key], value) for (key, value) in x.items())
             lst.append(new)
 
         return lst
 
-
-
     def initial_convert(self, filename):
 
-        #kinda dirty, might want to clean this up later
+        # kinda dirty, might want to clean this up later
         if filename == 'stock':
-            with open(f"{RAW_PATH}{filename}.xml", "rb") as f:
+            with open(f"{BASE_PATH}/files/feeds/{filename}.xml", "rb") as f:
                 file = xmltodict.parse(f, xml_attribs=True)
         else:
             file = self.__convert_xml_to_list(filename)
-            file = Converter.__convert_date_format(file)
+            file = self.__convert_date_format(file)
 
-        self.__save_pickle(file, f"{CONVERTED_FILE_PATH}{filename}.pkl")
+        self.__save_pickle(file, f"{BASE_PATH}/files/dict/{filename}.pkl")
         return file

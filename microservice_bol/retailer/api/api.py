@@ -1,10 +1,10 @@
 import requests
 import logging
+from decouple import config
 
-from constants.auth import CLIENT_ID, CLIENT_SECRET
-from constants.constants import DeliveryCode, ConditionName
+from microservice_bol.constants.constants import DeliveryCode, ConditionName
 
-from retailer.models.models import (
+from microservice_bol.retailer.models.models import (
     Invoice,
     Invoices,
     InvoiceSpecification,
@@ -308,13 +308,12 @@ class RetailerAPI(object):
 
     def login(self):
         data = {
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
+            "client_secret": config('CLIENT_SECRET'),
             "grant_type": "client_credentials",
         }
         resp = self.session.post(
             self.login_url + "/token",
-            auth=(CLIENT_ID, CLIENT_SECRET),
+            auth=(config('CLIENT_ID'), config('CLIENT_SECRET')),
             data=data,
         )
         resp.raise_for_status()

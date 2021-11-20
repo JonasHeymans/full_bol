@@ -1,27 +1,24 @@
 import logging
 import time
-from sqlalchemy import update
 
+from decouple import config
 
-from microservice_edc_pull.constants.constants import ALL_CLASSES
-from database_contants import DATABASE_NAME
 from database_connection import DatabaseSession
-from microservice_edc_pull.products.products import AllEdcProduct #Don't remove this.
-from microservice_edc_pull.parsers.edc_parser import Base,Variant,Price
-
+from microservice_edc_pull import ALL_CLASSES
+from microservice_edc_pull.parsers.edc_parser import Base, Variant, Price
+from microservice_edc_pull.products.products import AllEdcProduct  # Don't remove this.
 
 logger = logging.getLogger('microservice_edc_pull.database')
 
+
 class Database:
     def __init__(self):
-        self.db_name = DATABASE_NAME
-
+        self.db_name = config('DATABASE_NAME')
 
     def __start_db_session(self):
         Base.metadata.create_all(DatabaseSession().engine)
 
-
-    def push_products_to_db(self, filename, *args, method='fill'):
+    def push_products_to_db(self, filename, method='fill', *args):
         logger.debug("Starting pushing products to db")
         self.__start_db_session()
         starttime = time.time()
@@ -34,8 +31,9 @@ class Database:
         args = ALL_CLASSES if args == () else args
         logger.info(f" Pushing {args} to the database!")
 
-        getters = [f"All_EDC_Product.get_products('{arg}','{filename}')"for arg in args]
+        getters = [f"edcpr.get_products(classname='{arg}', filename='{filename}')" for arg in args]
         for getter in getters:
+            edcpr = AllEdcProduct()
             file = eval(getter)
             logger.debug(f'{getter} done')
 
@@ -43,27 +41,27 @@ class Database:
 
         logger.info(f'Successfully added {args} to Database in {time.time() - starttime :.2f} seconds!')
 
-
-    def fill_db(self,file):
+    def fill_db(self, file):
         with DatabaseSession() as session:
             for x in file:
                 session.add(x)
                 logger.debug(f'Pushed {x} to db')
 
-
     def merge_db(self, file):
         with DatabaseSession() as session:
             for x in file:
-                session.merge(x)
-                logger.debug(f'Pushed {x} to db')
+                try:
+                    session.merge(x)
+                    logger.debug(f'Pushed {x} to db')
+                except Exception as e:
+                    logger.error(e)
+                    continue
 
-    def update_db(self, file,table,product_id,dict):
+    def update_db(self, file, table, product_id, dict):
         with DatabaseSession() as session:
             for x in file:
                 session.query(table).filter(table.product_id == product_id).update(dict)
                 logger.debug(f'Pushed {x} to db')
-
-
 
     def push_discounts_to_db(self, method='fill'):
         self.__start_db_session()
@@ -76,10 +74,7 @@ class Database:
         file = aep.get_discounts()
         self.fill_db(file) if method == 'fill' else self.merge_db(file)
 
-
-
         logger.info(f'Successfully added discounts to Database in {time.time() - starttime :.2f} seconds!')
-
 
     def push_stock_to_db(self):
         self.__start_db_session()
@@ -87,9 +82,9 @@ class Database:
         file = aep.get_stock()
         with DatabaseSession() as session:
             logger.info('Updating Stock')
-            # todo is this Variant.product_id correct here, doesn't that have to be Variant.variant_id?
-            [session.query(Variant).filter(Variant.product_id == x['variant_id'] ).update(x) for x in file]
 
+            # todo is this Variant.product_id correct here, doesn't that have to be Variant.variant_id?
+            [session.query(Variant).filter(Variant.product_id == x['variant_id']).update(x) for x in file]
 
     def setup_prices(self):
         self.__start_db_session()
@@ -99,7 +94,6 @@ class Database:
             logger.info('Setting Up Prices')
             for x in file:
                 session.query(Price).filter(Price.product_id == x['product_id']).update(x)
-
 
     def push_prices_to_db(self):
         self.__start_db_session()

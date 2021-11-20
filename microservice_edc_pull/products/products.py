@@ -8,7 +8,7 @@ logger = logging.getLogger('microservice_edc_pull.products')
 from microservice_edc_pull.parsers.edc_parser import Product, Variant, Brand, Measures, Price, Pic, Category, Property, \
     Bulletpoint, Discount  # Don't remove this
 from microservice_edc_pull.parsers.converter import Converter
-from microservice_edc_pull.constants.save_locations import RAW_PATH, CONVERTED_FILE_PATH
+from microservice_edc_pull import BASE_PATH
 
 
 class AllEdcProduct:
@@ -22,7 +22,7 @@ class AllEdcProduct:
     #  here. Best method is I think just to create a separate file in dict for each class.
 
     def get_products(self, classname: str, filename: str) -> List:
-        file = self.__open_pickle(f"{CONVERTED_FILE_PATH}{filename}")
+        file = self.__open_pickle(f"{BASE_PATH}/files/dict/{filename}")
         d = {
             'Category': 'categories',
             'Variant': 'variants',
@@ -31,7 +31,8 @@ class AllEdcProduct:
             'Bulletpoint': 'bulletpoints'
         }
         if classname in d.keys():
-            file = Converter.convert(file, d[classname])
+            conv = Converter()
+            file = conv.convert(file, d[classname])
 
         logger.debug(f'Starting parsing of {classname}')
 
@@ -40,7 +41,7 @@ class AllEdcProduct:
 
 
     def get_discounts(self) -> List:
-        with open(f'{RAW_PATH}discounts.csv', newline='') as f:
+        with open(f'{BASE_PATH}/files/feeds/discounts.csv', newline='') as f:
             reader = csv.reader(f, delimiter=';')
             file = list(reader)[1:]
 
@@ -48,7 +49,7 @@ class AllEdcProduct:
 
 
     def get_stock(self) -> List:
-        file = self.__open_pickle(f"{CONVERTED_FILE_PATH}stock")['producten']['product']
+        file = self.__open_pickle(f"{BASE_PATH}/files/dict/stock")['producten']['product']
         con = Converter()
 
         return con.convert_stock(file)

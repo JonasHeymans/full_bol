@@ -12,7 +12,7 @@ def full_product_update():
     con.initial_convert('full')
 
     db = Database()
-    db.push_products_to_db('full')
+    db.push_products_to_db('full', method='update')
 
     edc.download_discounts()
     db.push_discounts_to_db()
