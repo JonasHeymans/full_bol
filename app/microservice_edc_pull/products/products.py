@@ -56,14 +56,14 @@ class AllEdcProduct:
 
 
     def setup_prices(self):
-        with open('files/feeds/price_full.csv', 'r') as csv_file:
+        with open(f'{BASE_PATH}/files/feeds/price_full.csv', 'r') as csv_file:
             file = csv.DictReader(csv_file, delimiter=';')
             con = Converter()
             return con.convert_prices_setup(file)
 
 
     def get_prices(self):
-        with open('files/feeds/price_update.csv', 'r') as csv_file:
+        with open(f'{BASE_PATH}/files/feeds/price_update.csv', 'r') as csv_file:
             file = csv.DictReader(csv_file, delimiter=';')
             con = Converter()
             return con.convert_prices(file)

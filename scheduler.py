@@ -13,6 +13,11 @@ from app.microservice_edc_pull.parsers.converter import Converter
 # TODO Break up converter.__loop_through_products into multiple functions/refactor so that it is easier to read
 # TODO Remove products that are out of stock?
 # TODO Check flow of full_product_update when pushing to db, it might be that we push too often (pushing product objects on each new picture)
+# TODO drop database every month or so to keep it clean?
+# TODO Setup proper logging via Kibana or something?
+# TODO Correctly setup calculation of Sell Price
+# TODO for prices, variants, properties, measures, categories (and brands?) tables on DB: change primary key to product_id (else we have many prices with all the same information...
+
 
 log = Logger().get_commandline_logger('DEBUG')
 
@@ -32,13 +37,21 @@ sched = BlockingScheduler()
 # General methods
 @sched.scheduled_job('interval', minutes=10)
 def up_reminder():
-    log.info(f'Still running at {datetime.now().strftime("%d-%m-%Y %H:%M:%S")}')
-    log.info(os.path.abspath(os.curdir))
+    log.info(f'All Good at {datetime.now().strftime("%d-%m-%Y %H:%M:%S")}')
 
 # EDC methods
+def initial_setup():
+    # This function is still very much incomplete
 
-# @sched.scheduled_job('cron', day_of_week='mon', hour=3)
-@sched.scheduled_job('cron', second=30)
+
+    db = Database()
+    db.push_products_to_db('full', method='update')
+
+    db.setup_prices()
+
+
+
+@sched.scheduled_job('cron', day_of_week='mon', hour=3)
 def full_product_update():
     edc = EdcClient()
     edc.download_products('full')
@@ -46,14 +59,12 @@ def full_product_update():
     con = Converter()
     con.initial_convert('full')
 
-    db = Database()
-    db.push_products_to_db('full', method='update')
 
     edc.download_discounts()
-    db.push_discounts_to_db()
+    db.push_discounts_to_db(method='update')
 
 
-@sched.scheduled_job('cron', hour=3)
+@sched.scheduled_job('cron', day_of_week='sat', hour=3)
 def new_product_update():
     edc = EdcClient()
     edc.download_products('new')
@@ -62,11 +73,11 @@ def new_product_update():
     con.initial_convert('new')
 
     db = Database()
-    db.push_products_to_db('new')
+    db.push_products_to_db('new', method='update')
 
     # Maybe i don't really need this here, but is not resource intensive so YOLO
     edc.download_discounts()
-    db.push_discounts_to_db()
+    db.push_discounts_to_db(method='update')
 
 
 @sched.scheduled_job('cron', minute=30)
@@ -81,18 +92,13 @@ def stock_update():
     db.push_stock_to_db()
 
 @sched.scheduled_job('cron', minute=00)
-def price_update(*args):
-    # args can be 'full' or 'update'
-    scope = 'full' if args == () else args
+def price_update():
 
     edc = EdcClient()
-    edc.download_prices(scope)
+    edc.download_prices('update')
 
     db = Database()
-    if scope == 'full':
-        db.setup_prices()
-    if scope == 'update':
-        db.push_prices_to_db()
+    db.push_prices_to_db()
 
 
 # Bol Methods

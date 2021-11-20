@@ -114,7 +114,8 @@ class Converter:
                 lst.append(d)
 
             except TypeError as e:
-                if str(e) == 'pop() takes at most 1 argument (2 given)':
+                # The first string can probably safly be removed.
+                if str(e) == 'pop() takes at most 1 argument (2 given)' or str(e) == "pop expected at most 1 argument, got 2":
                     for y in range(len(x)):
                         f = {}
                         f['product_id'] = d['product_id']

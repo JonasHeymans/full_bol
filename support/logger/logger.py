@@ -1,7 +1,8 @@
 import logging
 import sys
 
-#TODO logger class not working as expected
+
+# TODO logger class not working as expected
 
 class Logger:
     def __init__(self):
@@ -9,21 +10,19 @@ class Logger:
         self.datefmt = '%d-%m-%Y:%H:%M:%S'
         self.level = logging.INFO
 
-    levels ={
-        "DEBUG":logging.DEBUG,
+    levels = {
+        "DEBUG": logging.DEBUG,
         "INFO": logging.INFO,
         "WARN": logging.WARN,
         "CRITICAL": logging.CRITICAL
 
     }
 
-
-
-    def get_file_logger(self, level,filename = 'logs.log'):
+    def get_file_logger(self, level, filename='logs.log'):
         level = level.upper()
         logging.basicConfig(format=self.format,
                             datefmt=self.datefmt,
-                            level= self.levels[level],
+                            level=self.levels[level],
                             filename=filename)
 
         return logging.getLogger('bol_file')

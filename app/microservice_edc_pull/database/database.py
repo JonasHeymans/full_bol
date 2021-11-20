@@ -93,6 +93,7 @@ class Database:
         with DatabaseSession() as session:
             logger.info('Setting Up Prices')
             for x in file:
+                logger.debug(f'Pushed {x} to db')
                 session.query(Price).filter(Price.product_id == x['product_id']).update(x)
 
     def push_prices_to_db(self):

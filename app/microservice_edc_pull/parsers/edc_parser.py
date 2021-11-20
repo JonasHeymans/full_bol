@@ -293,6 +293,10 @@ class Bulletpoint(Base):
         self.product_id = parent['product_id']
         self.bp = parent['bp']
 
+    def __repr__(self):
+        return f"Bulletpoint object with product_id '{self.product_id}' and bulletpoint '{self.bp}'"
+
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     product_id = Column(Integer)
     bp = Column(String(255))
