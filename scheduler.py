@@ -37,7 +37,8 @@ def up_reminder():
 
 # EDC methods
 
-@sched.scheduled_job('cron', day_of_week='mon', hour=3)
+# @sched.scheduled_job('cron', day_of_week='mon', hour=3)
+@sched.scheduled_job('cron', second=30)
 def full_product_update():
     edc = EdcClient()
     edc.download_products('full')
