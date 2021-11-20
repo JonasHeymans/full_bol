@@ -132,9 +132,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/microservice_edc_pull/files/feeds/discounts.csv
-/microservice_edc_pull/files/dict/full.pkl
-/microservice_edc_pull/files/feeds/full.xml
-/microservice_edc_pull/files/feeds/new.xml
-/microservice_edc_pull/files/feeds/price_update.csv
-/microservice_edc_pull/files/feeds/stock.xml
+/app/microservice_edc_pull/files/feeds/discounts.csv
+/app/microservice_edc_pull/files/dict/full.pkl
+/app/microservice_edc_pull/files/feeds/full.xml
+/app/microservice_edc_pull/files/feeds/new.xml
+/app/microservice_edc_pull/files/feeds/price_update.csv
+/app/microservice_edc_pull/files/dict/stock.pkl
+/app/microservice_edc_pull/files/feeds/stock.xml

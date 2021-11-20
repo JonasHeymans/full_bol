@@ -3,10 +3,10 @@ import time
 
 from decouple import config
 
-from database_connection import DatabaseSession
-from microservice_edc_pull import ALL_CLASSES
-from microservice_edc_pull.parsers.edc_parser import Base, Variant, Price
-from microservice_edc_pull.products.products import AllEdcProduct  # Don't remove this.
+from support.database.database_connection import DatabaseSession
+from app.microservice_edc_pull import ALL_CLASSES
+from app.microservice_edc_pull.parsers.edc_parser import Base, Variant, Price
+from app.microservice_edc_pull.products.products import AllEdcProduct  # Don't remove this.
 
 logger = logging.getLogger('microservice_edc_pull.database')
 

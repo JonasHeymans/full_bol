@@ -1,13 +1,20 @@
+import os
+from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from microservice_edc_pull.database.database import Database
-from microservice_edc_pull.libs.edc import EdcClient
-from microservice_edc_pull.parsers.converter import Converter
+from support.logger.logger import Logger
+
+from app.microservice_edc_pull.database.database import Database
+from app.microservice_edc_pull.libs.edc import EdcClient
+from app.microservice_edc_pull.parsers.converter import Converter
 
 # TODO remove the dirty 'eval's everywhere
 # TODO remove the XML& pk files once I've pushed to db.
 # TODO Break up converter.__loop_through_products into multiple functions/refactor so that it is easier to read
+# TODO Remove products that are out of stock?
+# TODO Check flow of full_product_update when pushing to db, it might be that we push too often (pushing product objects on each new picture)
 
+log = Logger().get_commandline_logger('DEBUG')
 
 '''
 Timings of each request:
@@ -22,6 +29,11 @@ Timings of each request:
 
 sched = BlockingScheduler()
 
+# General methods
+@sched.scheduled_job('interval', minutes=10)
+def up_reminder():
+    log.info(f'Still running at {datetime.now().strftime("%d-%m-%Y %H:%M:%S")}')
+    log.info(os.path.abspath(os.curdir))
 
 # EDC methods
 
@@ -66,7 +78,6 @@ def stock_update():
 
     db = Database()
     db.push_stock_to_db()
-
 
 @sched.scheduled_job('cron', minute=00)
 def price_update(*args):

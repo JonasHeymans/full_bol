@@ -1,7 +1,7 @@
 import logging
 from decouple import config
 
-from database_connection import DatabaseSession
+from support.database.database_connection import DatabaseSession
 from microservice_bol.parsers.bol_parser import Base
 
 

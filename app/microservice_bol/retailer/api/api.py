@@ -308,12 +308,12 @@ class RetailerAPI(object):
 
     def login(self):
         data = {
-            "client_secret": config('CLIENT_SECRET'),
+            "client_secret": config('BOL_CLIENT_SECRET'),
             "grant_type": "client_credentials",
         }
         resp = self.session.post(
             self.login_url + "/token",
-            auth=(config('CLIENT_ID'), config('CLIENT_SECRET')),
+            auth=(config('BOL_CLIENT_ID'), config('BOL_CLIENT_SECRET')),
             data=data,
         )
         resp.raise_for_status()

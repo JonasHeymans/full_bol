@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, String, Date, TEXT, Float, CHAR, BIGINT,
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from microservice_edc_pull.database.database import DatabaseSession
+from app.microservice_edc_pull.database.database import DatabaseSession
 
 # TODO: is there something wrong with Categories?
 # TODO: Maybe I should give my tables just their class names
