@@ -13,7 +13,7 @@ logger = logging.getLogger('microservice_edc_pull.database')
 
 class Database:
     def __init__(self):
-        self.db_name = config('DATABASE_NAME')
+        self.DATABASE_URL = config('DATABASE_URL')
 
     def __start_db_session(self):
         Base.metadata.create_all(DatabaseSession().engine)

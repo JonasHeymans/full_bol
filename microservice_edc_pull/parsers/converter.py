@@ -10,8 +10,6 @@ from microservice_edc_pull import BASE_PATH
 
 logger = logging.getLogger('microservice_edc_pull.converter')
 
-print(BASE_PATH)
-
 class Converter:
 
     def __convert_xml_to_list(self, xml_file_name, xml_attribs=True) -> List:
