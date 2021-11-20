@@ -6,7 +6,7 @@ from typing import List
 
 import xmltodict
 
-from microservice_edc_pull import BASE_PATH
+from app.microservice_edc_pull import BASE_PATH
 
 logger = logging.getLogger('microservice_edc_pull.converter')
 

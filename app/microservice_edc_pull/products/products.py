@@ -5,10 +5,10 @@ import csv
 
 logger = logging.getLogger('microservice_edc_pull.products')
 
-from microservice_edc_pull.parsers.edc_parser import Product, Variant, Brand, Measures, Price, Pic, Category, Property, \
+from app.microservice_edc_pull.parsers.edc_parser import Product, Variant, Brand, Measures, Price, Pic, Category, Property, \
     Bulletpoint, Discount  # Don't remove this
-from microservice_edc_pull.parsers.converter import Converter
-from microservice_edc_pull import BASE_PATH
+from app.microservice_edc_pull.parsers.converter import Converter
+from app.microservice_edc_pull import BASE_PATH
 
 
 class AllEdcProduct:

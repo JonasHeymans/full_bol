@@ -3,7 +3,7 @@ import logging
 
 from decouple import config
 
-from microservice_edc_pull import BASE_URL, BASE_PATH
+from app.microservice_edc_pull import BASE_URL, BASE_PATH
 
 logger = logging.getLogger('microservice_edc_pull.edc')
 

@@ -56,6 +56,7 @@ class CancellationReasonCode:
     UNFINDABLE_ITEM = "UNFINDABLE_ITEM"
     OTHER = "OTHER"
 
+
 class DeliveryCode:
     d_24uurs_23 = "24uurs-23"
     d_24uurs_22 = "24uurs-22"
@@ -69,12 +70,13 @@ class DeliveryCode:
     d_24uurs_14 = "24uurs-14"
     d_24uurs_13 = "24uurs-13"
     d_24uurs_11 = "24uurs-12"
-    d_1_to_2d  = "1-2d"
-    d_2_to_3d  = "2-3d"
-    d_3_to_5d  = "3-5d"
-    d_4_to_8d  = "4-8d"
-    d_1_to_8d  = "1-8d"
+    d_1_to_2d = "1-2d"
+    d_2_to_3d = "2-3d"
+    d_3_to_5d = "3-5d"
+    d_4_to_8d = "4-8d"
+    d_1_to_8d = "1-8d"
     d_mijn_leverbelofte = '"MijnLeverbelofte"'
+
 
 class ConditionName:
     NEW = "NEW"
@@ -82,6 +84,3 @@ class ConditionName:
     GOOD = "GOOD"
     REASONABLE = "REASONABLE"
     MODERATE = "MODERATE"
-
-
-
