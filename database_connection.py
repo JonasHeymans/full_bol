@@ -11,13 +11,10 @@ logger = logging.getLogger('microservice_edc_pull.database_connection')
 class DatabaseSession:
     def __init__(self):
         self.connection = None
-        self.host = config('DATABASE_HOST')
-        self.password =  config('DATABASE_PASSWORD')
-        self.user =  config('DATABASE_USER')
-        self.database = config('DATABASE_NAME')
+        self.DATABASE_URL = config('DATABASE_URL')
+
         self.starttime_connection = time.time()
-        self.engine = create_engine(f'postgres://{self.user}:{self.password}@{self.host}/'
-                                    f'{self.database}',echo=False)
+        self.engine = create_engine(self.DATABASE_URL,echo=False)
 
 
     def __enter__(self):
