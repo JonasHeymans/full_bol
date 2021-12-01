@@ -17,9 +17,16 @@ from app.microservice_edc_pull.parsers.converter import Converter
 # TODO Setup proper logging via Kibana or something?
 # TODO Correctly setup calculation of Sell Price
 # TODO for prices, variants, properties, measures, categories (and brands?) tables on DB: change primary key to product_id (else we have many prices with all the same information...
+# TODO drop duplicates in file of brands,.. speeding up push to db
+# TODO: I'm getting the error "Could not add categories of 8765, skipping" and "Something went very wrong in the convert function!"
+#  for about 40 categories when pusing to db, though 76 seem to be correctly pushed
+# Error when adding product_id as primary key for measures: "sqlalchemy.exc.InvalidRequestError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+# (psycopg2.errors.NotNullViolation) null value in column "product_id" of relation "measures" violates not-null constraint
+# DETAIL:  Failing row contains (null, null, null, null, null, null)."
+# [SQL: INSERT INTO measures (maxdiameter, insertiondepth, weight, packing, length) VALUES (%(maxdiameter)s, %(insertiondepth)s, %(weight)s, %(packing)s, %(length)s)]
+# [parameters: {'maxdiameter': None, 'insertiondepth': None, 'weight': None, 'packing': None, 'length': None}]
 
-
-log = Logger().get_commandline_logger('DEBUG')
+log = Logger().get_commandline_logger('INFO')
 
 '''
 Timings of each request:
@@ -59,6 +66,8 @@ def full_product_update():
     con = Converter()
     con.initial_convert('full')
 
+    db = Database()
+    db.push_products_to_db('full', method='update')
 
     edc.download_discounts()
     db.push_discounts_to_db(method='update')
@@ -103,4 +112,17 @@ def price_update():
 
 # Bol Methods
 
-sched.start()
+@sched.scheduled_job('cron', minute=30)
+def testing():
+    edc = EdcClient()
+    edc.download_products('full')
+
+    con = Converter()
+    con.initial_convert('full')
+
+    db = Database()
+    db.push_products_to_db('full', 'update')
+
+    edc.download_discounts()
+    db.push_discounts_to_db( method='update')
+

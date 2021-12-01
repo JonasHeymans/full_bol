@@ -3,12 +3,16 @@ import time
 
 from decouple import config
 
-from support.database.database_connection import DatabaseSession
 from app.microservice_edc_pull import ALL_CLASSES
 from app.microservice_edc_pull.parsers.edc_parser import Base, Variant, Price
 from app.microservice_edc_pull.products.products import AllEdcProduct  # Don't remove this.
+from support.database.database_connection import DatabaseSession
 
 logger = logging.getLogger('microservice_edc_pull.database')
+
+
+def split_list(lst, chunk_size):
+    return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
 class Database:
@@ -31,31 +35,53 @@ class Database:
         args = ALL_CLASSES if args == () else args
         logger.info(f" Pushing {args} to the database!")
 
-        getters = [f"edcpr.get_products(classname='{arg}', filename='{filename}')" for arg in args]
-        for getter in getters:
+        for arg in args:
             edcpr = AllEdcProduct()
-            file = eval(getter)
-            logger.debug(f'{getter} done')
+            file = edcpr.get_products(classname=arg, filename=filename)
+
+            logger.info(f'Starting on {arg}')
 
             self.fill_db(file) if method == 'fill' else self.merge_db(file)
 
+            intervalttime = time.time()
+            logger.info(f'{arg} done, took {intervalttime - starttime :.2f} seconds')
+
+
         logger.info(f'Successfully added {args} to Database in {time.time() - starttime :.2f} seconds!')
 
+
     def fill_db(self, file):
-        with DatabaseSession() as session:
-            for x in file:
-                session.add(x)
-                logger.debug(f'Pushed {x} to db')
+        new_lst = split_list(file, 500)
+        for lst in new_lst:
+            try:
+                with DatabaseSession() as session:
+                    for x in lst:
+                        session.add(x)
+                        logger.debug(f'Pushed {x} to db')
+            except:
+                session.rollback()
+
+        # for lst in new_lst:
+        #     with DatabaseSession() as session:
+        #         try:
+        #             session.add_all(lst)
+        #             logger.debug(f'Pushed {file.index(lst[0])} of {len(file)} to db')
+        #         except Exception as e:
+        #             logger.error(e)
+        #             continue
 
     def merge_db(self, file):
-        with DatabaseSession() as session:
-            for x in file:
-                try:
-                    session.merge(x)
-                    logger.debug(f'Pushed {x} to db')
-                except Exception as e:
-                    logger.error(e)
-                    continue
+        new_lst = split_list(file, 500)
+        for lst in new_lst:
+            with DatabaseSession() as session:
+                for x in lst:
+                    try:
+                        logger.info(f'Completed {new_lst.index(lst)} of {len(new_lst)}')
+                        session.merge(x)
+                        logger.debug(f'Pushed {x} to db')
+                    except Exception as e:
+                        session.rollback()
+                        logger.warning(f'Error on {x}: {e}')
 
     def update_db(self, file, table, product_id, dict):
         with DatabaseSession() as session:

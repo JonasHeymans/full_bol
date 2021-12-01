@@ -17,7 +17,7 @@ class Converter:
             logger.debug('Starting conversion from XML to dict')
             start = time.time()
             my_dictionary = xmltodict.parse(f, xml_attribs=xml_attribs)
-            logger.debug(f'Conversion from XML to dict Successful. Took {time.time() - start:.2f} seconds')
+            logger.debug(f'Conversion from XML to dict Successful. Took {(time.time() - start)/60:.2f} minutes')
             return my_dictionary['products']['product']
 
     '''Ok, this is like quite dirty... But I needed to do it because for example there can be 1 or 

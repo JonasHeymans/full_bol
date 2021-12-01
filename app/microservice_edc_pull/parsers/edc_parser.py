@@ -5,14 +5,13 @@ from sqlalchemy import Column, Integer, String, Date, TEXT, Float, CHAR, BIGINT,
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from app.microservice_edc_pull.database.database import DatabaseSession
+from support.database.database_connection import DatabaseSession
 
 # TODO: is there something wrong with Categories?
 # TODO: Maybe I should give my tables just their class names
 # TODO make separate table for measures (1xM)
 # TODO brands m2m is still broken
 # todo does not seem to include remaining and remaining_quantity in variants
-# todo Add some repr methods (eg. for Bulletpoint)
 # TODO We do not push to db until we have added all items to session, risk off potential dataloss.
 # TODO add try-and except blocks.
 
@@ -23,7 +22,7 @@ Base = declarative_base()
 
 brands_products_association = Table('brands_products', Base.metadata,
                                     Column('products_id', Integer, ForeignKey('products.product_id')),
-                                    Column('brands_id', Integer, ForeignKey('brands.product_id')))
+                                    Column('brands_id', Integer, ForeignKey('brands.brand_id')))
 
 
 #
@@ -57,7 +56,8 @@ class Product(Base):
         self.restrictions_platform = parent['restrictions'].pop('platform', None)
         self.battery_required = False if not isinstance(parent['battery'], list) else True
         self.battery_id = None if self.battery_required == False else parent['battery'][0].pop('id', None)
-        self.battery_included = None if self.battery_required == False else (True if parent['battery'][0].pop('included', None) == 'Y' else False)
+        self.battery_included = None if self.battery_required == False else (
+            True if parent['battery'][0].pop('included', None) == 'Y' else False)
         self.battery_quantity = None if self.battery_required == False else parent['battery'][0].pop('quantity', None)
 
         self.casecount = parent.pop('casecount', None)
@@ -79,7 +79,6 @@ class Product(Base):
     popularity = Column(Integer)
     country = Column(String(255))
     restrictions_platform = Column(String(255))
-    battery = Column(CHAR)
     battery_required = Column(Boolean)
     battery_id = Column(Integer)
     battery_included = Column(Boolean)
@@ -117,9 +116,7 @@ class Variant(Base):
     def __repr__(self):
         return f"Variant object with product_id '{self.product_id}', variant_id '{self.variant_id}', type '{self.type}', enz"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-
-    variant_id = Column(Integer)
+    variant_id = Column(Integer, primary_key=True)
     type = Column(String(255))
     subartnr = Column(String(255))
     ean = Column(BIGINT)
@@ -145,8 +142,8 @@ class Brand(Base):
     def __repr__(self):
         return f"Brand object with product_id '{self.product_id}', brand_id '{self.brand_id}' and title '{self.title}'"
 
-    product_id = Column(Integer, primary_key=True)
-    brand_id = Column(Integer)
+    brand_id = Column(Integer, primary_key=True)
+    product_id = Column(Integer)
     title = Column(String(255))
 
 
@@ -171,8 +168,6 @@ class Price(Base):
     def __repr__(self):
         return f"Price object with product_id '{self.product_id}', currency '{self.currency}', b2b '{self.b2b}', enz"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-
     artnr = Column(String(255))
     update_date = Column(Date)
     currency = Column(String(255))
@@ -187,7 +182,7 @@ class Price(Base):
     buy_price = Column(Float)
     our_price = Column(Float)
 
-    product_id = Column(Integer, ForeignKey('products.product_id'))
+    product_id = Column(Integer, ForeignKey('products.product_id'), primary_key=True)
     products = relationship("Product", back_populates="prices")
 
     # Math seems to be ok, but still edc gives other prices on their site. So use the provided feed instead of calculating it yourself
@@ -228,7 +223,7 @@ class Measures(Base):
     __tablename__ = 'measures'
 
     def __init__(self, parent):
-        if parent['measures']:
+        if parent['measures'] and parent['id'] != None:
             self.product_id = parent['id']
             self.insertiondepth = parent['measures'].pop('insertiondepth', 0)
             self.length = parent['measures'].pop('length', None)
@@ -239,13 +234,12 @@ class Measures(Base):
     def __repr__(self):
         return f"Measures object with product_id '{self.product_id}', insertiondepth '{self.insertiondepth}', length '{self.length}', enz"
 
-    id = Column(Integer, primary_key=True)
+    product_id = Column(Integer, ForeignKey('products.product_id'), primary_key=True)
     maxdiameter = Column(Float)
     insertiondepth = Column(Float)
     weight = Column(Integer)
     packing = Column(String(255))
     length = Column(Float)
-    product_id = Column(Integer, ForeignKey('products.product_id'))
 
     products = relationship("Product", back_populates="measures")
 
@@ -260,10 +254,9 @@ class Pic(Base):
         self.pic = parent['pic']
 
     def __repr__(self):
-        return f"Product object with artnr '{self.artnr}' and pic '{self.pic}'"
+        return f"Pic object with artnr '{self.artnr}' and pic '{self.pic}'"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    pic = Column(String(255))
+    pic = Column(String(255), primary_key=True)
     artnr = Column(String(255))
 
     product_id = Column(Integer, ForeignKey('products.product_id'))
@@ -277,9 +270,8 @@ class Category(Base):
         self.category_id = parent['id']
         self.title = parent['title']
 
-    id = Column(Integer, primary_key=True)
     product_id = Column(Integer)
-    category_id = Column(Integer)
+    category_id = Column(Integer, primary_key=True)
     title = Column(String(255))
 
     def __repr__(self):
@@ -296,10 +288,8 @@ class Bulletpoint(Base):
     def __repr__(self):
         return f"Bulletpoint object with product_id '{self.product_id}' and bulletpoint '{self.bp}'"
 
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    bp = Column(String(255), primary_key=True)
     product_id = Column(Integer)
-    bp = Column(String(255))
 
 
 class Property(Base):
@@ -325,9 +315,11 @@ class Property(Base):
             else:
                 raise Exception
 
-    id = Column(Integer, primary_key=True)
+    def __repr__(self):
+        return f"Property object with product_id '{self.product_id}' and propid '{self.propid}'"
+
+    propid = Column(Integer, primary_key=True)
     product_id = Column(Integer)
-    propid = Column(Integer)
     property = Column(String(255))
     valueid = Column(Integer)
     value = Column(String(255))
