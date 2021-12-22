@@ -194,7 +194,7 @@ class OrderItems(ModelList):
 
 class Order(Model):
     class Meta:
-        dateTimeOrderPlaced = DateTimeField()
+        orderPlacedDateTime = DateTimeField()
         customerDetails = ModelField(CustomerDetails)
         orderItems = ModelField(OrderItems)
 

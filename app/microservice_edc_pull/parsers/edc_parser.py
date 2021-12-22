@@ -1,7 +1,9 @@
 import logging
 import math
+from datetime import datetime as dt
 
-from sqlalchemy import Column, Integer, String, Date, TEXT, Float, CHAR, BIGINT, ForeignKey, Table, Boolean
+import numpy as np
+from sqlalchemy import Column, Integer, String, Date, TEXT, Float, CHAR, BIGINT, ForeignKey, Table, Boolean, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -11,9 +13,8 @@ from support.database.database_connection import DatabaseSession
 # TODO: Maybe I should give my tables just their class names
 # TODO make separate table for measures (1xM)
 # TODO brands m2m is still broken
-# todo does not seem to include remaining and remaining_quantity in variants
-# TODO We do not push to db until we have added all items to session, risk off potential dataloss.
 # TODO add try-and except blocks.
+# todo does not seem to include remaining and remaining_quantity in variants, update: this todo seems to be fixed?
 
 
 logger = logging.getLogger('microservice_edc_pull.parser')
@@ -59,9 +60,9 @@ class Product(Base):
         self.battery_included = None if self.battery_required == False else (
             True if parent['battery'][0].pop('included', None) == 'Y' else False)
         self.battery_quantity = None if self.battery_required == False else parent['battery'][0].pop('quantity', None)
-
         self.casecount = parent.pop('casecount', None)
         self.restrictions_germany = parent['restrictions'].pop('germany', None)
+        self.update_date = dt.now()
 
     def __repr__(self):
         return f"Product object with product_id '{self.product_id}', artnr '{self.artnr}', title '{self.title}', enz"
@@ -71,7 +72,7 @@ class Product(Base):
     material = Column(String(255))
     casecount = Column(Integer)
     restrictions_germany = Column(String(255))
-    artnr = Column(String(255))
+    artnr = Column(String(255), unique=True)
     title = Column(String(255))
     description = Column(TEXT)
     date = Column(Date)
@@ -83,10 +84,11 @@ class Product(Base):
     battery_id = Column(Integer)
     battery_included = Column(Boolean)
     battery_quantity = Column(Integer)
+    update_date = Column(DateTime)
 
-    prices = relationship("Price", uselist=False, back_populates="products")
     measures = relationship("Measures", uselist=False, back_populates="products")
-    #
+    prices = relationship("Price", uselist=False, back_populates="products")
+
     variants = relationship("Variant")
     pics = relationship("Pic")
 
@@ -101,9 +103,9 @@ class Variant(Base):
 
     def __init__(self, parent):
         self.product_id = parent['product_id']
-        self.variant_id = parent['id']
+        self.variant_id = parent.pop('id', None)
         self.type = parent.pop('type', None)
-        self.subartnr = parent.pop('subartnr', None)
+        self.subartnr = parent['subartnr']
         self.ean = parent.pop('ean', None)
         self.stock = parent.pop('stock', None)
         self.stockestimate = parent.pop('stockestimate', None)
@@ -114,11 +116,11 @@ class Variant(Base):
         self.remaining_quantity = parent.pop('remaining_quantity', None)
 
     def __repr__(self):
-        return f"Variant object with product_id '{self.product_id}', variant_id '{self.variant_id}', type '{self.type}', enz"
+        return f"Variant object with product_id '{self.product_id}', subartnr '{self.subartnr}', type '{self.type}', enz"
 
-    variant_id = Column(Integer, primary_key=True)
+    variant_id = Column(Integer, )
     type = Column(String(255))
-    subartnr = Column(String(255))
+    subartnr = Column(String(255), primary_key=True)
     ean = Column(BIGINT)
     stock = Column(String(255))
     stockestimate = Column(Integer)
@@ -127,8 +129,20 @@ class Variant(Base):
     title = Column(String(255))
     remaining = Column(CHAR)
     remaining_quantity = Column(Integer)
+    update_date_stock = Column(DateTime)
 
     product_id = Column(Integer, ForeignKey('products.product_id'))
+
+    def stock_update(self):
+        self.update_date_stock = dt.now()
+
+    def extract_product(self):
+        # todo: am I doing something dangerous here by saying that artnr == subartnr?
+        p = Product({'id': self.product_id,
+                     'artnr': self.subartnr,
+                     'restrictions': {},
+                     'battery': {}})
+        return p
 
 
 class Brand(Base):
@@ -151,26 +165,21 @@ class Price(Base):
     __tablename__ = 'prices'
 
     def __init__(self, parent):
-        self.product_id = parent['id']
-        self.currency = parent['price'].pop('currency', None)
-        self.b2b = float(parent['price'].pop('b2b', None))
-        self.b2c = float(parent['price'].pop('b2c', None))
-        self.vatnl = float(parent['price'].pop('vatnl', None))
-        self.vatde = float(parent['price'].pop('vatde', None))
-        self.vatfr = float(parent['price'].pop('vatfr', None))
-        self.vatuk = float(parent['price'].pop('vatuk', None))
+        self.artnr = parent['artnr']
+        self.product_id = parent.pop('id', None)
         self.discount = parent['price'].pop('discount', None)
-        self.brand_id = parent['brand'].pop('id', None)
-        self.discount_percentage = 0  # todo, removed  self.__get_discount_percentage(brand_id)  just to make it run faster and I don't currently use this method
-        self.buy_price = self.__calculate_buy_price(self.b2b, self.discount, self.discount_percentage)
-        self.our_price = self.__calculate_sellprice(self.buy_price)
+        self.discount_percentage = 0  # todo, removed    just to make it run faster and I don't currently use this method
+        self.update_date = dt.now()
+        self.b2bsale = parent['price'].pop('b2bsale', None)
 
     def __repr__(self):
-        return f"Price object with product_id '{self.product_id}', currency '{self.currency}', b2b '{self.b2b}', enz"
+        return f"Price object with artnr '{self.artnr}', currency '{self.currency}', b2b '{self.b2b}', enz"
 
-    artnr = Column(String(255))
-    update_date = Column(Date)
-    currency = Column(String(255))
+    product_id = Column(Integer)
+    subartnr = Column(String(100))
+    update_date = Column(DateTime)
+    init_date = Column(DateTime)
+    currency = Column(String(20))
     b2b = Column(Float)
     b2c = Column(Float)
     vatnl = Column(Float)
@@ -179,11 +188,38 @@ class Price(Base):
     vatuk = Column(Float)
     discount = Column(CHAR)
     discount_percentage = Column(Integer)
+    brand_id = Column(Integer)
     buy_price = Column(Float)
     our_price = Column(Float)
+    b2bsale = Column(Float)
 
-    product_id = Column(Integer, ForeignKey('products.product_id'), primary_key=True)
+    artnr = Column(String(255), ForeignKey('products.artnr'), primary_key=True)
     products = relationship("Product", back_populates="prices")
+
+    def add_init_attibutes(self, parent):
+
+        self.currency = parent['price'].pop('currency', None)
+        self.vatnl = float(parent['price'].pop('vatnl', np.nan))
+        self.vatde = float(parent['price'].pop('vatde', np.nan))
+        self.vatfr = float(parent['price'].pop('vatfr', np.nan))
+        self.vatuk = float(parent['price'].pop('vatuk', np.nan))
+
+        self.init_date = dt.now()
+        self.add_setup_attibutes(parent)
+        self.add_update_attibutes(parent)
+
+    def add_setup_attibutes(self, parent):
+        self.subartnr = parent.pop('subartnr', None)
+
+    def add_update_attibutes(self, parent):
+        self.b2b = float(parent['price'].pop('b2b', np.nan))
+        self.b2c = float(parent['price'].pop('b2c', np.nan))
+        self.brand_id = parent['brand'].pop('id', None)
+        # self.__get_discount_percentage(self.brand_id )
+
+        self.buy_price = self.__calculate_buy_price(self.b2b, self.discount, self.discount_percentage)
+        self.our_price = self.__calculate_sellprice(self.b2b)
+        # todo: change the argument here back to self.buy_price when I find out why we do not get the correct discounts
 
     # Math seems to be ok, but still edc gives other prices on their site. So use the provided feed instead of calculating it yourself
     def __calculate_buy_price(self, b2b_price, discount, discount_percentage):
@@ -200,10 +236,16 @@ class Price(Base):
         return buy_price
 
     def __calculate_sellprice(self, buy_price):
-        profit_margin = 0.20
+        # Todo: fix this ugly bugfix properly, I implemented it because we sometimes do not get a b2b price, for example
+        # when updating the prices, and we only get a b2c price
+        if math.isnan(buy_price):
+            return np.nan
+
+        bol_commission = 0.15
+        profit_margin = 0.15
         shipping_cost = 6.50
 
-        sell_price = buy_price * (1 + profit_margin) + shipping_cost
+        sell_price = (buy_price + shipping_cost + 1) / (1- bol_commission - profit_margin)
         rounded_sell_price = math.ceil(sell_price) - 0.01
 
         return rounded_sell_price
@@ -217,6 +259,18 @@ class Price(Base):
                 return discount_object.discount
             except Exception:
                 logger.debug(f'Error on getting discount for product with brand_id {brand_id}')
+
+    def extract_product(self):
+        p = Product({'id': self.product_id,
+                     'artnr': self.subartnr,
+                     'restrictions': {},
+                     'battery': {}})
+        return p
+
+    def extract_variant(self):
+        v = Variant({'product_id': self.product_id,
+                     'subartnr': self.subartnr})
+        return v
 
 
 class Measures(Base):

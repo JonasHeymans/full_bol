@@ -8,10 +8,6 @@ from app.microservice_edc_pull import BASE_URL, BASE_PATH
 logger = logging.getLogger('microservice_edc_pull.edc')
 
 
-# Todo: there was a mistake in the stock link. I think the right one is http://api.edc.nl/xml/eg_xml_feed_stock.xml.
-#  For now I just removed the stock request.
-
-# TODO probably better to download the zip-file and unpack it locally.
 
 class EdcClient():
     api_key = config('EDC_API_KEY')

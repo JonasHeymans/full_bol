@@ -19,14 +19,13 @@ Form of this documentation: <bol_API_name> : <method_in_program>
 - Cancel an order item by order item id:
 api.orders.cancel_order_item(order_item_id, reason_code)
 
-- Ship order item: api.order.ship_order_item(order_item_id, 
+- Ship order item: api.orders.ship_order_item(order_item_id, 
 shipment_reference, shipping_label_code,transporter_code,track_and_trace,))
 
 
 ## Shipments
 
 All bol.com API- requests are implemented.
-
 
 - Get shipment list: api.shipments.list()
 

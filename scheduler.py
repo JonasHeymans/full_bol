@@ -1,17 +1,14 @@
-import os
 from datetime import datetime
-from apscheduler.schedulers.blocking import BlockingScheduler
 
-from support.logger.logger import Logger
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 from app.microservice_edc_pull.database.database import Database
 from app.microservice_edc_pull.libs.edc import EdcClient
 from app.microservice_edc_pull.parsers.converter import Converter
+from support.logger.logger import Logger
 
-# TODO remove the dirty 'eval's everywhere
 # TODO remove the XML& pk files once I've pushed to db.
 # TODO Break up converter.__loop_through_products into multiple functions/refactor so that it is easier to read
-# TODO Remove products that are out of stock?
 # TODO Check flow of full_product_update when pushing to db, it might be that we push too often (pushing product objects on each new picture)
 # TODO drop database every month or so to keep it clean?
 # TODO Setup proper logging via Kibana or something?
@@ -41,24 +38,40 @@ Timings of each request:
 
 sched = BlockingScheduler()
 
+
 # General methods
 @sched.scheduled_job('interval', minutes=10)
 def up_reminder():
     log.info(f'All Good at {datetime.now().strftime("%d-%m-%Y %H:%M:%S")}')
 
-# EDC methods
-def initial_setup():
-    # This function is still very much incomplete
 
+# EDC methods
+@sched.scheduled_job('cron', hour=3)
+def initial_setup():
+    edc = EdcClient()
+    edc.download_products('full')
+    edc.download_products('new')
+    edc.download_stock()
+    edc.download_discounts()
+    edc.download_prices('full')
+    edc.download_prices('update')
+
+    con = Converter()
+    con.initial_convert('full')
+    con.initial_convert('new')
+    con.initial_convert('stock')
 
     db = Database()
-    db.push_products_to_db('full', method='update')
+    db.push_products_to_db('full', 'fill', 'Product', 'Variant', "Price")
 
-    db.setup_prices()
+    db.push_products_to_db('new', method='fill')
+    db.push_stock_to_db(method='merge')
+    db.push_discounts_to_db(method='fill')
+    db.setup_prices(method='merge')
+    db.update_prices(method='merge')
 
 
-
-@sched.scheduled_job('cron', day_of_week='mon', hour=3)
+# @sched.scheduled_job('cron', day_of_week='mon', hour=3)
 def full_product_update():
     edc = EdcClient()
     edc.download_products('full')
@@ -67,13 +80,16 @@ def full_product_update():
     con.initial_convert('full')
 
     db = Database()
-    db.push_products_to_db('full', method='update')
+    db.push_products_to_db('full', method='merge')
+    db.push_stock_to_db()
 
     edc.download_discounts()
-    db.push_discounts_to_db(method='update')
+    db.push_discounts_to_db(method='merge')
+
+    db.update_prices(method='merge')
 
 
-@sched.scheduled_job('cron', day_of_week='sat', hour=3)
+# @sched.scheduled_job('cron', day_of_week='sat', hour=3)
 def new_product_update():
     edc = EdcClient()
     edc.download_products('new')
@@ -82,11 +98,11 @@ def new_product_update():
     con.initial_convert('new')
 
     db = Database()
-    db.push_products_to_db('new', method='update')
+    db.push_products_to_db('new', method='merge')
 
-    # Maybe i don't really need this here, but is not resource intensive so YOLO
+    # Maybe I don't really need this here, but is not resource intensive so YOLO
     edc.download_discounts()
-    db.push_discounts_to_db(method='update')
+    db.push_discounts_to_db(method='merge')
 
 
 @sched.scheduled_job('cron', minute=30)
@@ -100,29 +116,13 @@ def stock_update():
     db = Database()
     db.push_stock_to_db()
 
-@sched.scheduled_job('cron', minute=00)
-def price_update():
 
+# @sched.scheduled_job('cron', minute=00)
+def price_update():
     edc = EdcClient()
     edc.download_prices('update')
 
     db = Database()
-    db.push_prices_to_db()
-
+    db.update_prices(method='merge')
 
 # Bol Methods
-
-@sched.scheduled_job('cron', minute=30)
-def testing():
-    edc = EdcClient()
-    edc.download_products('full')
-
-    con = Converter()
-    con.initial_convert('full')
-
-    db = Database()
-    db.push_products_to_db('full', 'update')
-
-    edc.download_discounts()
-    db.push_discounts_to_db( method='update')
-

@@ -1,11 +1,12 @@
+import csv
 import logging
 import pickle
 from typing import List
-import csv
 
 logger = logging.getLogger('microservice_edc_pull.products')
 
-from app.microservice_edc_pull.parsers.edc_parser import Product, Variant, Brand, Measures, Price, Pic, Category, Property, \
+from app.microservice_edc_pull.parsers.edc_parser import Product, Variant, Brand, Measures, Price, Pic, Category, \
+    Property, \
     Bulletpoint, Discount  # Don't remove this
 from app.microservice_edc_pull.parsers.converter import Converter
 from app.microservice_edc_pull import BASE_PATH
@@ -36,9 +37,25 @@ class AllEdcProduct:
 
         logger.debug(f'Starting parsing of {classname}')
 
-        getter = f'[{classname}(e) for e in file]'
-        return eval(getter)
+        classes = {'Product': Product,
+                   'Variant': Variant,
+                   'Brand': Brand,
+                   'Category': Category,
+                   'Measures': Measures,
+                   'Property': Property,
+                   'Bulletpoint': Bulletpoint,
+                   'Pic': Pic,
+                   'Stock': Variant,
+                   'Price': Price,
+                   'Discount': Discount}
 
+        class_objects = [classes[classname](e) for e in file]
+
+        if classname == 'Price':
+            for price_obj, e in zip(class_objects, file):
+                price_obj.add_init_attibutes(e)
+
+        return class_objects
 
     def get_discounts(self) -> List:
         with open(f'{BASE_PATH}/files/feeds/discounts.csv', newline='') as f:
@@ -47,23 +64,41 @@ class AllEdcProduct:
 
         return [Discount(e) for e in file]
 
-
     def get_stock(self) -> List:
-        file = self.__open_pickle(f"{BASE_PATH}/files/dict/stock")['producten']['product']
+        input_file = self.__open_pickle(f"{BASE_PATH}/files/dict/stock")['producten']['product']
         con = Converter()
 
-        return con.convert_stock(file)
+        file = con.convert_stock(input_file)
 
+        stock_objects = [Variant(e) for e in file]
+
+        for stock_object in stock_objects:
+            stock_object.stock_update()
+
+        return stock_objects
 
     def setup_prices(self):
         with open(f'{BASE_PATH}/files/feeds/price_full.csv', 'r') as csv_file:
-            file = csv.DictReader(csv_file, delimiter=';')
+            input_file = csv.DictReader(csv_file, delimiter=';')
             con = Converter()
-            return con.convert_prices_setup(file)
 
+            file = con.convert_prices(input_file, 'setup')
+            price_objects = [Price(e) for e in file]
 
-    def get_prices(self):
+            for price_obj, e in zip(price_objects, file):
+                price_obj.add_setup_attibutes(e)
+
+            return price_objects
+
+    def update_prices(self):
         with open(f'{BASE_PATH}/files/feeds/price_update.csv', 'r') as csv_file:
-            file = csv.DictReader(csv_file, delimiter=';')
+            input_file = csv.DictReader(csv_file, delimiter=';')
             con = Converter()
-            return con.convert_prices(file)
+
+            file = con.convert_prices(input_file, 'update')
+            price_objects = [Price(e) for e in file]
+
+            for price_obj, e in zip(price_objects, file):
+                price_obj.add_update_attibutes(e)
+
+            return price_objects

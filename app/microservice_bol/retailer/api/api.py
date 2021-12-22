@@ -1,10 +1,10 @@
-import requests
 import logging
+
+import requests
 from decouple import config
 
-from microservice_bol.constants.constants import DeliveryCode, ConditionName
-
-from microservice_bol.retailer.models.models import (
+from app.microservice_bol.constants.constants import DeliveryCode, ConditionName
+from app.microservice_bol.retailer.models.models import (
     Invoice,
     Invoices,
     InvoiceSpecification,
@@ -14,17 +14,13 @@ from microservice_bol.retailer.models.models import (
     ProcessStatus,
     ProcessStatuses,
     Shipment,
-    Shipments,
-    BundlePrices
+    Shipments
 )
 
 __all__ = ["RetailerAPI"]
 
 logger = logging.getLogger(__name__)
 
-
-# TODO solve mutable default parameters, because this can otherwise become nasty
-# TODO clean up long function parameters, al lot of which are 'None' with usage of args
 
 class MethodGroup(object):
     def __init__(self, api, group):
@@ -83,9 +79,10 @@ class OrderMethods(MethodGroup):
         return ProcessStatus.parse(self.api, resp.text)
 
     def cancel_order_item(self, order_item_id, reason_code):
-        payload = {"reasonCode": reason_code}
+        payload = {"reasonCode": reason_code,
+                   'orderItemId': order_item_id}
         resp = self.request(
-            "PUT", path=f"{order_item_id}/cancellation", json=payload
+            "PUT", path=f"/cancellation", json=payload
         )
         return ProcessStatus.parse(self.api, resp.text)
 
@@ -133,9 +130,9 @@ class OfferMethods(MethodGroup):
                      ):
 
         for x in bundle_prices:
-            if list(x.keys()) != ['quantity', 'price']:
+            if list(x.keys()) != ['quantity', 'unitPrice']:
                 print(x.keys())
-                raise ValueError('Keys need to be quantity and price')
+                raise ValueError('Keys need to be quantity and unitPrice')
 
         payload = {'ean': ean,
                    'condition': {'name': condition_name},
@@ -144,7 +141,6 @@ class OfferMethods(MethodGroup):
                              'managedByRetailer': stock_managed_by_retailer},
                    'fulfilment': {'type': fulfilment_type}
                    }
-
 
         if condition_category:
             payload.setdefault("condition", {})[
@@ -354,7 +350,7 @@ class RetailerAPI(object):
         self.session.headers.update(
             {
                 "Authorization": "Bearer " + access_token,
-                "Accept": "application/vnd.retailer.v3+json",
+                "Accept": "application/vnd.retailer.v4+json",
             }
         )
 
@@ -375,7 +371,7 @@ class RetailerAPI(object):
             # Reference:
             #   https://api.bol.com/retailer/public/conventions/index.html
             request_kwargs["headers"].update({
-                "content-type": "application/vnd.retailer.v3+json"
+                "content-type": "application/vnd.retailer.v4+json"
             })
         resp = self.session.request(**request_kwargs)
         resp.raise_for_status()

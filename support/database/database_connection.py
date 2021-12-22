@@ -28,6 +28,6 @@ class DatabaseSession:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.session.commit()
         self.session.close()
-        logger.debug(f'DatabaseSession closed. Total connection time: {time.time() - self.starttime_connection :.2f} seconds')
+        logger.debug(f'DatabaseSession closed. Total connection time: {(time.time() - self.starttime_connection)/60 :.2f} minutes')
 
 

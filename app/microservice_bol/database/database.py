@@ -2,7 +2,7 @@ import logging
 from decouple import config
 
 from support.database.database_connection import DatabaseSession
-from microservice_bol.parsers.bol_parser import Base
+from app.microservice_bol.parsers.bol_parser import Base
 
 
 logger = logging.getLogger('microservice_bol.database')

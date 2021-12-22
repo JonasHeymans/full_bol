@@ -2,8 +2,6 @@ import logging
 import sys
 
 
-# TODO logger class not working as expected
-
 class Logger:
     def __init__(self):
         self.format = '%(asctime) s %(levelname) -8s [%(filename) s:%(lineno) d] %(message) s'

@@ -7,6 +7,10 @@ from typing import List
 import xmltodict
 
 from app.microservice_edc_pull import BASE_PATH
+from app.microservice_edc_pull.parsers.edc_parser import Variant
+
+from support.database.database_connection import DatabaseSession
+
 
 logger = logging.getLogger('microservice_edc_pull.converter')
 
@@ -72,11 +76,11 @@ class Converter:
 
         logger.debug(f'Converted {tablename}')
 
+
         return converted_file
 
     def __productid_generator(self, file):
         for x in file:
-            yield x['id']
             yield x['id']
 
     def __loop_through_products(self, file, name, keys) -> List:
@@ -134,6 +138,7 @@ class Converter:
                 if str(e) == "NoneType' object has no attribute 'pop'":
                     logger.warning(f"Could not add {name} of {d['product_id']}, skipping")
                     continue
+
 
         return lst
 
@@ -217,11 +222,19 @@ class Converter:
         return lst
 
     def convert_stock(self, file):
+        d1 = {'productid': 'product_id',
+              'variantid': 'id',
+              'productnr': 'subartnr',
+              'ean': 'ean',
+              'stock': 'stock',
+              'qty': 'stockestimate',
+              'week': 'weeknr'}
+
         lst = []
         for x in range(len(file)):
             x = dict(file[x])
-            d1 = {'productid': 'product_id', 'variantid': 'variant_id', 'productnr': 'subartnr', 'ean': 'ean',
-                  'stock': 'stock', 'qty': 'stockestimate', 'week': 'weeknr'}
+
+
             new = dict((d1[key], value) for (key, value) in x.items())
             new['stock'] = new['stock'].replace('J', 'Y')
             lst.append(new)
@@ -229,29 +242,57 @@ class Converter:
         return lst
 
     # Maybe also add date of change to the dict?
+    # def convert_prices_setup(self, file):
+    #     lst = []
+    #     for x in file:
+    #         x = dict(x)
+    #         x = {key: x[key] for key in x.keys() &
+    #              {'productid', 'b2b', 'b2c', 'discount', 'your_price', 'artnr'}}
+    #         d1 = {'productid': 'product_id', 'b2b': 'b2b', 'b2c': 'b2c', 'artnr': 'artnr',
+    #               'discount': 'discount_percentage', 'your_price': 'buy_price'}
+    #         new = dict((d1[key], value) for (key, value) in x.items())
+    #         lst.append(new)
+    #
+    #     return lst
 
-    def convert_prices_setup(self, file):
+    def convert_prices(self, file, type):
         lst = []
-        for x in file:
-            x = dict(x)
-            x = {key: x[key] for key in x.keys() &
-                 {'productid', 'b2b', 'b2c', 'discount', 'your_price', 'artnr'}}
-            d1 = {'productid': 'product_id', 'b2b': 'b2b', 'b2c': 'b2c', 'artnr': 'artnr',
-                  'discount': 'discount_percentage', 'your_price': 'buy_price'}
-            new = dict((d1[key], value) for (key, value) in x.items())
-            lst.append(new)
+        for price in file:
+            price_dict = dict(price)
+            excluded = ['brandname', 'artname', 'type']
 
-        return lst
+            d1 = {'productid': 'id',
+                  'artnr': 'artnr',
+                  'b2c': 'b2c',
+                  'b2b': 'b2b',
+                  'discount': 'discount',
+                  'your_price': 'b2b',
+                  'ean': 'ean',
+                  'discount_percentage':'discount_percentage',
+                  'brandid': 'brand_id',
+                  'subartnr': 'subartnr',
+                  'artnr':'artnr',
+                  'date': 'update_date',
+                  }
 
-    def convert_prices(self, file):
-        lst = []
-        for x in file:
-            x = dict(x)
-            x = {key: x[key] for key in x.keys() &
-                 {'artnr', 'date', 'new_price', 'discount'}}
-            d1 = {'artnr': 'artnr', 'date': 'update_date',
-                  'discount': 'discount', 'new_price': 'buy_price'}
-            new = dict((d1[key], value) for (key, value) in x.items())
+            if type == 'update':
+                d1['new_price'] = price_dict['type']
+
+            if type == 'setup':
+                price_dict['discount_percentage'] = price_dict['discount']
+                price_dict['discount'] = 'Y' if price_dict['discount'] else 'N'
+
+
+            new = dict((d1[key], value) for (key, value) in price_dict.items() if key not in excluded)
+            new['price'] = {}
+            new['brand'] = {}
+            for x in ['discount', 'b2c', 'b2b', 'brand_id']:
+                if x in new.keys():
+                    if x == 'brand_id':
+                        new['brand'][x] = new.pop(x)
+                    else:
+                        new['price'][x] = new.pop(x)
+
             lst.append(new)
 
         return lst
