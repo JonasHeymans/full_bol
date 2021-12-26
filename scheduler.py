@@ -38,12 +38,13 @@ Timings of each request:
 
 sched = BlockingScheduler()
 
-
 # General methods
 @sched.scheduled_job('interval', minutes=10)
 def up_reminder():
-    log.info(f'All Good at {datetime.now().strftime("%d-%m-%Y %H:%M:%S")}')
+    log.info(f'Currently running jobs:')
 
+    for job in sched.get_jobs():
+        log.info(f'{job.name.title()}: next run at {job.next_run_time}, trigger for {job.trigger}')
 
 # EDC methods
 @sched.scheduled_job('cron', hour=3)
@@ -120,6 +121,7 @@ def stock_update():
 @sched.scheduled_job('cron', minute=00)
 def price_update():
     edc = EdcClient()
+    edc.download_prices('full')
     edc.download_prices('update')
 
     db = Database(connection_type='merge')
@@ -129,3 +131,5 @@ def price_update():
     db.update_prices()
 
 # Bol Methods
+
+
