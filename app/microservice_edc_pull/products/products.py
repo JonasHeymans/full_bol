@@ -55,6 +55,10 @@ class AllEdcProduct:
             for price_obj, e in zip(class_objects, file):
                 price_obj.add_init_attibutes(e)
 
+        if classname == 'Variant':
+            for stock_object, e in zip(class_objects, file):
+                stock_object.stock_update()
+
         return class_objects
 
     def get_discounts(self) -> List:

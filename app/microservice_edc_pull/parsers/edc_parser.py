@@ -56,8 +56,8 @@ class Product(Base):
         self.country = parent.pop('country', None)
         self.restrictions_platform = parent['restrictions'].pop('platform', None)
         self.battery_required = False if not isinstance(parent['battery'], list) else True
-        self.battery_id = None if self.battery_required == False else parent['battery'][0].pop('id', None)
-        self.battery_included = None if self.battery_required == False else (
+        self.battery_id = None if not self.battery_required else parent['battery'][0].pop('id', None)
+        self.battery_included = None if not self.battery_required else (
             True if parent['battery'][0].pop('included', None) == 'Y' else False)
         self.battery_quantity = None if self.battery_required == False else parent['battery'][0].pop('quantity', None)
         self.casecount = parent.pop('casecount', None)
@@ -114,6 +114,8 @@ class Variant(Base):
         self.title = parent.pop('title', None)
         self.remaining = parent.pop('remaining', None)
         self.remaining_quantity = parent.pop('remaining_quantity', None)
+        self.update_date = dt.now()
+
 
     def __repr__(self):
         return f"Variant object with product_id '{self.product_id}', subartnr '{self.subartnr}', type '{self.type}', enz"
@@ -130,6 +132,8 @@ class Variant(Base):
     remaining = Column(CHAR)
     remaining_quantity = Column(Integer)
     update_date_stock = Column(DateTime)
+    update_date = Column(DateTime)
+
 
     product_id = Column(Integer, ForeignKey('products.product_id'))
 
@@ -152,6 +156,8 @@ class Brand(Base):
         self.product_id = parent['id']
         self.brand_id = parent['brand'].pop('id', None)
         self.title = parent['brand'].pop('title', None)
+        self.update_date = dt.now()
+
 
     def __repr__(self):
         return f"Brand object with product_id '{self.product_id}', brand_id '{self.brand_id}' and title '{self.title}'"
@@ -159,6 +165,8 @@ class Brand(Base):
     brand_id = Column(Integer, primary_key=True)
     product_id = Column(Integer)
     title = Column(String(255))
+    update_date = Column(DateTime)
+
 
 
 class Price(Base):
@@ -170,7 +178,11 @@ class Price(Base):
         self.discount = parent['price'].pop('discount', None)
         self.discount_percentage = 0  # todo, removed    just to make it run faster and I don't currently use this method
         self.update_date = dt.now()
-        self.b2bsale = parent['price'].pop('b2bsale', None)
+        self.b2bsale = float(parent['price'].pop('b2bsale', np.nan))
+
+        self.buy_price = self.__calculate_buy_price(self.b2b,self.b2bsale, self.discount, self.discount_percentage)
+        self.our_price = self.__calculate_sellprice(self.buy_price)
+
 
     def __repr__(self):
         return f"Price object with artnr '{self.artnr}', currency '{self.currency}', b2b '{self.b2b}', enz"
@@ -217,12 +229,12 @@ class Price(Base):
         self.brand_id = parent['brand'].pop('id', None)
         # self.__get_discount_percentage(self.brand_id )
 
-        self.buy_price = self.__calculate_buy_price(self.b2b, self.discount, self.discount_percentage)
-        self.our_price = self.__calculate_sellprice(self.b2b)
-        # todo: change the argument here back to self.buy_price when I find out why we do not get the correct discounts
 
     # Math seems to be ok, but still edc gives other prices on their site. So use the provided feed instead of calculating it yourself
-    def __calculate_buy_price(self, b2b_price, discount, discount_percentage):
+    def __calculate_buy_price(self, b2b_price, b2bsale, discount, discount_percentage):
+
+        b2b_price = b2bsale if b2bsale != np.nan else b2b_price
+
         b2b_price = float(b2b_price)
 
         if discount.upper() == 'Y':
@@ -242,10 +254,10 @@ class Price(Base):
             return np.nan
 
         bol_commission = 0.15
-        profit_margin = 0.15
+        profit_margin = 0.10
         shipping_cost = 6.50
 
-        sell_price = (buy_price + shipping_cost + 1) / (1- bol_commission - profit_margin)
+        sell_price = (buy_price + shipping_cost + 1) / (1 - bol_commission - profit_margin)
         rounded_sell_price = math.ceil(sell_price) - 0.01
 
         return rounded_sell_price
@@ -284,9 +296,11 @@ class Measures(Base):
             self.maxdiameter = parent['measures'].pop('maxdiameter', None)
             self.weight = parent['measures'].pop('weight', None)
             self.packing = parent['measures'].pop('packing', None)
+            self.update_date = dt.now()
 
     def __repr__(self):
-        return f"Measures object with product_id '{self.product_id}', insertiondepth '{self.insertiondepth}', length '{self.length}', enz"
+        return f"Measures object with product_id '{self.product_id}'," \
+               f"insertiondepth '{self.insertiondepth}', length '{self.length}', enz"
 
     product_id = Column(Integer, ForeignKey('products.product_id'), primary_key=True)
     maxdiameter = Column(Float)
@@ -294,6 +308,8 @@ class Measures(Base):
     weight = Column(Integer)
     packing = Column(String(255))
     length = Column(Float)
+    update_date = Column(DateTime)
+
 
     products = relationship("Product", back_populates="measures")
 
@@ -306,12 +322,16 @@ class Pic(Base):
         self.product_id = parent['product_id']
         self.artnr = parent['id']
         self.pic = parent['pic']
+        self.update_date = dt.now()
+
 
     def __repr__(self):
         return f"Pic object with artnr '{self.artnr}' and pic '{self.pic}'"
 
     pic = Column(String(255), primary_key=True)
     artnr = Column(String(255))
+    update_date = Column(DateTime)
+
 
     product_id = Column(Integer, ForeignKey('products.product_id'))
 
@@ -323,10 +343,14 @@ class Category(Base):
         self.product_id = parent['product_id']
         self.category_id = parent['id']
         self.title = parent['title']
+        self.update_date = dt.now()
+
 
     product_id = Column(Integer)
     category_id = Column(Integer, primary_key=True)
     title = Column(String(255))
+    update_date = Column(DateTime)
+
 
     def __repr__(self):
         return f"Category object with product_id '{self.product_id}', category_id '{self.category_id}' and title '{self.title}'"
@@ -338,12 +362,16 @@ class Bulletpoint(Base):
     def __init__(self, parent):
         self.product_id = parent['product_id']
         self.bp = parent['bp']
+        self.update_date = dt.now()
+
 
     def __repr__(self):
         return f"Bulletpoint object with product_id '{self.product_id}' and bulletpoint '{self.bp}'"
 
     bp = Column(String(255), primary_key=True)
     product_id = Column(Integer)
+    update_date = Column(DateTime)
+
 
 
 class Property(Base):
@@ -358,6 +386,8 @@ class Property(Base):
         self.property = parent['property']
         self.valueid = parent['valueid']
         self.value = parent['value']
+        self.update_date = dt.now()
+
 
         try:
             self.value_id = parent['id']
@@ -381,6 +411,8 @@ class Property(Base):
     title = Column(String(255))
     unit = Column(String(255))
     magnitude = Column(Integer)
+    update_date = Column(DateTime)
+
 
 
 # Still none of the MXM's works
@@ -392,10 +424,15 @@ class Discount(Base):
         self.brand_id = parent[0]
         self.brandname = parent[1]
         self.discount = parent[2]
+        self.update_date = dt.now()
+
 
     def __repr__(self):
-        return f"Discount object with brand_id '{self.brand_id}', brandname '{self.brandname}' and discount '{self.discount}'"
+        return f"Discount object with brand_id '{self.brand_id}', " \
+               f"brandname '{self.brandname}' and discount '{self.discount}'"
 
     brand_id = Column(Integer, primary_key=True)
     brandname = Column(String(255))
     discount = Column(Integer)
+    update_date = Column(DateTime)
+

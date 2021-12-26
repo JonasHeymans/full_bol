@@ -47,7 +47,7 @@ def up_reminder():
 
 # EDC methods
 @sched.scheduled_job('cron', hour=3)
-def initial_setup():
+def full_setup():
     edc = EdcClient()
     edc.download_products('full')
     edc.download_products('new')
@@ -61,14 +61,14 @@ def initial_setup():
     con.initial_convert('new')
     con.initial_convert('stock')
 
-    db = Database()
-    db.push_products_to_db('full', 'fill', 'Product', 'Variant', "Price")
+    db = Database(connection_type='merge')
+    db.push_products_to_db('full', 'Product', 'Variant', "Price")
 
-    db.push_products_to_db('new', method='fill')
-    db.push_stock_to_db(method='merge')
-    db.push_discounts_to_db(method='fill')
-    db.setup_prices(method='merge')
-    db.update_prices(method='merge')
+    db.push_products_to_db('new')
+    db.push_stock_to_db()
+    db.push_discounts_to_db()
+    db.setup_prices()
+    db.update_prices()
 
 
 # @sched.scheduled_job('cron', day_of_week='mon', hour=3)
@@ -79,14 +79,14 @@ def full_product_update():
     con = Converter()
     con.initial_convert('full')
 
-    db = Database()
-    db.push_products_to_db('full', method='merge')
+    db = Database(connection_type='merge')
+    db.push_products_to_db('full')
     db.push_stock_to_db()
 
     edc.download_discounts()
-    db.push_discounts_to_db(method='merge')
+    db.push_discounts_to_db()
 
-    db.update_prices(method='merge')
+    db.update_prices()
 
 
 # @sched.scheduled_job('cron', day_of_week='sat', hour=3)
@@ -97,12 +97,12 @@ def new_product_update():
     con = Converter()
     con.initial_convert('new')
 
-    db = Database()
-    db.push_products_to_db('new', method='merge')
+    db = Database(connection_type='merge')
+    db.push_products_to_db('new')
 
     # Maybe I don't really need this here, but is not resource intensive so YOLO
     edc.download_discounts()
-    db.push_discounts_to_db(method='merge')
+    db.push_discounts_to_db()
 
 
 @sched.scheduled_job('cron', minute=30)
@@ -113,16 +113,19 @@ def stock_update():
     con = Converter()
     con.initial_convert('stock')
 
-    db = Database()
+    db = Database(connection_type='merge')
     db.push_stock_to_db()
 
 
-# @sched.scheduled_job('cron', minute=00)
+@sched.scheduled_job('cron', minute=00)
 def price_update():
     edc = EdcClient()
     edc.download_prices('update')
 
-    db = Database()
-    db.update_prices(method='merge')
+    db = Database(connection_type='merge')
+
+    # Setup is probably not necessary here but yolo
+    db.setup_prices()
+    db.update_prices()
 
 # Bol Methods

@@ -271,7 +271,6 @@ class Converter:
                   'discount_percentage':'discount_percentage',
                   'brandid': 'brand_id',
                   'subartnr': 'subartnr',
-                  'artnr':'artnr',
                   'date': 'update_date',
                   }
 
@@ -286,12 +285,16 @@ class Converter:
             new = dict((d1[key], value) for (key, value) in price_dict.items() if key not in excluded)
             new['price'] = {}
             new['brand'] = {}
-            for x in ['discount', 'b2c', 'b2b', 'brand_id']:
+
+            for x in ['discount', 'b2c', 'b2b', 'brand_id', ]:
                 if x in new.keys():
                     if x == 'brand_id':
                         new['brand'][x] = new.pop(x)
                     else:
                         new['price'][x] = new.pop(x)
+                        if x == 'b2b':
+                            new['price']['b2bsale'] = new['price']['b2b']
+
 
             lst.append(new)
 

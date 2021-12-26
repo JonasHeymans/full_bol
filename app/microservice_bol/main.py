@@ -17,6 +17,7 @@ def main():
       "quantity" : 12,
       "unitPrice" : 7.99
     } ]
+
     orders = api.offers.create_offer('0045496420253', bp, 8)
 
     print(vars(orders))
