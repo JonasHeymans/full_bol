@@ -2,9 +2,11 @@
 
 original source: https://github.com/pennersr/python-bol-api
 
-bol.com reference: https://api.bol.com/retailer/public/redoc/v3#operation
+bol.com reference: https://api.bol.com/retailer/public/redoc/v6#
 
-Test cases: https://api.bol.com/retailer/public/demo/v3-commissions.html
+Migration Guide: https://api.bol.com/retailer/public/Retailer-API/v6/migrationguide/v4-v6/migrationguide.html
+
+Test cases: https://api.bol.com/retailer/public/Retailer-API/demo/v6-COMMISSIONS.html
 
 ## Orders
 

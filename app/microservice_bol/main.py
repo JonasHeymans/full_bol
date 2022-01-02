@@ -1,10 +1,14 @@
 import logging.config
+from support.database.database_connection import DatabaseSession
+
+from support.database.database import Database
 
 from app.microservice_bol.retailer.api.api import RetailerAPI
 
-
 def main():
-    api = RetailerAPI()
+
+
+    api = RetailerAPI(demo=True)
     api.login()
 
     bp = [ {
@@ -18,9 +22,15 @@ def main():
       "unitPrice" : 7.99
     } ]
 
-    orders = api.offers.create_offer('0045496420253', bp, 8)
+    orders = api.orders.get('1043965710')
 
-    print(vars(orders))
+    db = Database(connection_type='merge')
+
+    with DatabaseSession() as session:
+        session.merge(orders)
+        logger.debug(f'Pushed {orders} to db')
+
+    print(orders)
 
 
 if __name__ == '__main__':

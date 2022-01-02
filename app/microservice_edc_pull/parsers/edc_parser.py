@@ -3,8 +3,8 @@ import math
 from datetime import datetime as dt
 
 import numpy as np
-from sqlalchemy import Column, Integer, String, Date, TEXT, Float, CHAR, BIGINT, ForeignKey, Table, Boolean, DateTime
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Date, TEXT, Float, CHAR, BIGINT, ForeignKey, Table, Boolean, DateTime
 from sqlalchemy.orm import relationship
 
 from support.database.database_connection import DatabaseSession
@@ -16,10 +16,9 @@ from support.database.database_connection import DatabaseSession
 # TODO add try-and except blocks.
 # todo does not seem to include remaining and remaining_quantity in variants, update: this todo seems to be fixed?
 
+Base = declarative_base()
 
 logger = logging.getLogger('microservice_edc_pull.parser')
-
-Base = declarative_base()
 
 brands_products_association = Table('brands_products', Base.metadata,
                                     Column('products_id', Integer, ForeignKey('products.product_id')),

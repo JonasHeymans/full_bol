@@ -1,8 +1,6 @@
-from datetime import datetime
-
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from app.microservice_edc_pull.database.database import Database
+from support.database.database import Database
 from app.microservice_edc_pull.libs.edc import EdcClient
 from app.microservice_edc_pull.parsers.converter import Converter
 from support.logger.logger import Logger

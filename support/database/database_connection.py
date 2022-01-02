@@ -5,7 +5,7 @@ import time
 from decouple import config
 
 
-logger = logging.getLogger('microservice_edc_pull.database_connection')
+logger = logging.getLogger(__name__)
 
 
 class DatabaseSession:

@@ -5,10 +5,14 @@ from decouple import config
 from sqlalchemy.exc import IntegrityError
 
 from app.microservice_edc_pull import ALL_CLASSES
-from app.microservice_edc_pull.parsers.edc_parser import Base, Product, Variant, Price, Brand, Category, Measures, \
+from app.microservice_edc_pull.parsers.edc_parser import Base as EdcBase, Product, Variant, Price, Brand, Category, Measures, \
     Property, Bulletpoint, Pic, Discount
-from app.microservice_edc_pull.products.products import AllEdcProduct  # Don't remove this.
+from app.microservice_edc_pull.products.products import AllEdcProduct
+
 from support.database.database_connection import DatabaseSession
+
+from app.microservice_bol.retailer.models.models import Base as BolBase
+
 
 logger = logging.getLogger('microservice_edc_pull.database')
 
@@ -21,6 +25,7 @@ class Database:
     def __init__(self, connection_type):
         self.DATABASE_URL = config('DATABASE_URL')
         self.connection_type = connection_type
+        self.__start_db_session()
 
     @property
     def connection_type(self):
@@ -34,7 +39,9 @@ class Database:
         self.__connection_type = value
 
     def __start_db_session(self):
-        Base.metadata.create_all(DatabaseSession().engine)
+        EdcBase.metadata.create_all(DatabaseSession().engine)
+        BolBase.metadata.create_all(DatabaseSession().engine)
+
 
     def __push_to_df(self, lst, update_target_id, update_target_class):
         try:
@@ -114,7 +121,6 @@ class Database:
 
     def push_products_to_db(self, filename, *args):
         logger.debug("Starting pushing products to db")
-        self.__start_db_session()
         full_starttime = time.time()
 
         # elegant way of saying: "if insert_in_db is not given any arguments of which classes to push,
@@ -133,30 +139,27 @@ class Database:
         logger.info(f'Successfully added {args} to Database in {(time.time() - full_starttime) / 60 :.2f} minutes!')
 
     def push_discounts_to_db(self):
-        self.__start_db_session()
-
         aep = AllEdcProduct()
         file = aep.get_discounts()
         logger.info('Pushing Discounts')
         self.insert_in_db(file,  update_target='discount')
 
     def push_stock_to_db(self):
-        self.__start_db_session()
         aep = AllEdcProduct()
         file = aep.get_stock()
         logger.info('Updating Stock')
         self.insert_in_db(file, update_target='stock')
 
     def setup_prices(self):
-        self.__start_db_session()
         aep = AllEdcProduct()
         file = aep.setup_prices()
         logger.info('Setting Up Prices')
         self.insert_in_db(file, update_target='price')
 
     def update_prices(self):
-        self.__start_db_session()
         aep = AllEdcProduct()
         file = aep.update_prices()
         logger.info('Updating Prices')
         self.insert_in_db(file, update_target='price')
+
+

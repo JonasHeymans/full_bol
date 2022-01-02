@@ -3,11 +3,15 @@ import sys
 from datetime import date
 from decimal import Decimal
 import logging
-
-logger = logging.getLogger(__name__)
-
 import dateutil.parser
 
+
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, TEXT, Float, Boolean, DateTime, ForeignKey, Date
+from sqlalchemy.orm import relationship
+Base = declarative_base()
+
+logger = logging.getLogger(__name__)
 
 def _is_str(v):
     if sys.version_info >= (3, 0, 0):
@@ -98,10 +102,17 @@ class ModelList(list, BaseModel):
         return ml
 
 
-class BillingDetails(Model):
+class BillingDetails(Model, Base):
+    __tablename__ = 'billingdetails'
+
     class Meta:
         pass
 
+    email = Column(String(255), primary_key=True)
+    salutation = Column(String(10))
+
+    # orderId = Column(String(32), ForeignKey('orders.orderId'))
+    # order = relationship("Order", back_populates="billingDetails")
 
 class BundlePrice(Model):
     class Meta:
@@ -179,12 +190,20 @@ class Price(Model):
         BaseQuantity = DecimalField()
 
 
-class OrderItem(Model):
+class OrderItem(Model, Base):
+    __tablename__ = 'orderitems'
+
     class Meta:
         offerPrice = DecimalField()
         transactionFee = DecimalField()
         latestDeliveryDate = DateField()
         expiryDate = DateField()
+
+    orderItemId = Column(String(32), primary_key=True)
+
+    ean = Column(Float)
+    quantity = Column(Integer)
+    orderId = Column(String(32), ForeignKey('orders.orderId'))
 
 
 class OrderItems(ModelList):
@@ -192,11 +211,22 @@ class OrderItems(ModelList):
         item_type = OrderItem
 
 
-class Order(Model):
+class Order(Model, Base):
+    __tablename__ = 'orders'
+
     class Meta:
         orderPlacedDateTime = DateTimeField()
         customerDetails = ModelField(CustomerDetails)
         orderItems = ModelField(OrderItems)
+
+    orderId = Column(String(32), primary_key=True)
+    orderPlacedDateTime = Column(DateTime)
+
+    orderItems = relationship("OrderItem")
+
+    # billingDetails = relationship("BillingDetails", back_populates="order")
+
+
 
 
 class Orders(ModelList):

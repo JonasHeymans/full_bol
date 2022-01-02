@@ -1,5 +1,4 @@
 import logging
-
 import requests
 from decouple import config
 
@@ -350,7 +349,7 @@ class RetailerAPI(object):
         self.session.headers.update(
             {
                 "Authorization": "Bearer " + access_token,
-                "Accept": "application/vnd.retailer.v4+json",
+                "Accept": "application/vnd.retailer.v6+json",
             }
         )
 
@@ -371,7 +370,7 @@ class RetailerAPI(object):
             # Reference:
             #   https://api.bol.com/retailer/public/conventions/index.html
             request_kwargs["headers"].update({
-                "content-type": "application/vnd.retailer.v4+json"
+                "content-type": "application/vnd.retailer.v6+json"
             })
         resp = self.session.request(**request_kwargs)
         resp.raise_for_status()
