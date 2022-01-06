@@ -3,6 +3,7 @@ import time
 
 from decouple import config
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.schema import CreateSchema
 
 from support.database.database_connection import DatabaseSession
 
@@ -46,6 +47,7 @@ class Database:
         EdcBase.metadata.create_all(DatabaseSession().engine)
         BolBase.metadata.create_all(DatabaseSession().engine)
         OrderBase.metadata.create_all(DatabaseSession().engine)
+
 
     def __push_to_df(self, lst, update_target_id, update_target_class):
         try:
