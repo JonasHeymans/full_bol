@@ -17,6 +17,9 @@ class DatabaseSession:
         self.starttime_connection = time.time()
         self.engine = create_engine(self.DATABASE_URL,echo=False)
 
+        self.engine.execute(CreateSchema('bol'))
+        self.engine.execute(CreateSchema('edc_order'))
+
 
 
 
