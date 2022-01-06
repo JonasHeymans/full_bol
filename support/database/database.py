@@ -48,11 +48,6 @@ class Database:
         BolBase.metadata.create_all(DatabaseSession().engine)
         OrderBase.metadata.create_all(DatabaseSession().engine)
 
-        engine = DatabaseSession().engine
-        engine.execute(CreateSchema('bol'))
-        engine.execute(CreateSchema('edc_order'))
-
-
     def __push_to_df(self, lst, update_target_id, update_target_class):
         try:
             with DatabaseSession() as session:

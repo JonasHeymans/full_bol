@@ -17,8 +17,10 @@ class DatabaseSession:
         self.starttime_connection = time.time()
         self.engine = create_engine(self.DATABASE_URL,echo=False)
 
-
-
+        if not self.engine.dialect.has_schema(self.engine, 'bol'):
+            self.engine.execute(CreateSchema('bol'))
+        if not self.engine.dialect.has_schema(self.engine, 'edc_order'):
+            self.engine.execute(CreateSchema('edc_order'))
 
     def __enter__(self):
 
