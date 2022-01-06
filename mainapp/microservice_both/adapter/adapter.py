@@ -1,4 +1,4 @@
-from app.microservice_both.parsers.edc_order import EdcShipment
+from mainapp.microservice_both.parsers.edc_order import EdcShipment
 
 class OrderAdapter:
 

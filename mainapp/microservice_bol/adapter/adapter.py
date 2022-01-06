@@ -1,7 +1,7 @@
 import logging
 
-from app.microservice_bol.parsers.bol_classes import Order, shipmentDetails, OrderItem, billingDetails
-from app.microservice_bol.retailer.api.api import RetailerAPI
+from mainapp.microservice_bol.parsers.bol_classes import Order, shipmentDetails, OrderItem, billingDetails
+from mainapp.microservice_bol.retailer.api.api import RetailerAPI
 
 logger = logging.getLogger(__name__)
 

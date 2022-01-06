@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, TEXT, Boolean, DateTime, Date, F
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from app.microservice_bol.parsers.enums import TimeFrameType, DistributionParty, Salutation
+from mainapp.microservice_bol.parsers.enums import TimeFrameType, DistributionParty, Salutation
 
 Base = declarative_base()
 schema_name = 'bol'

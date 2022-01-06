@@ -7,16 +7,16 @@ from sqlalchemy.schema import CreateSchema
 
 from support.database.database_connection import DatabaseSession
 
-from app.microservice_bol.adapter.adapter import BolAdapter
-from app.microservice_bol.parsers.bol_classes import Base as BolBase, Order, Shipment, shipmentDetails, OrderItem, billingDetails
+from mainapp.microservice_bol.adapter.adapter import BolAdapter
+from mainapp.microservice_bol.parsers.bol_classes import Base as BolBase, Order, Shipment, shipmentDetails, OrderItem, billingDetails
 
-from app.microservice_edc_pull import ALL_EDC_CLASSES
-from app.microservice_edc_pull.adapter.edc_adapter import EdcAdapter
-from app.microservice_edc_pull.parsers.edc_parser import Base as EdcBase, Product, Variant, Price, Brand, Category, \
+from mainapp.microservice_edc_pull import ALL_EDC_CLASSES
+from mainapp.microservice_edc_pull.adapter.edc_adapter import EdcAdapter
+from mainapp.microservice_edc_pull.parsers.edc_parser import Base as EdcBase, Product, Variant, Price, Brand, Category, \
     Measures, Property, Bulletpoint, Pic, Discount
 
-from app.microservice_both.adapter.adapter import OrderAdapter
-from app.microservice_both.parsers.edc_order import Base as OrderBase, EdcShipment
+from mainapp.microservice_both.adapter.adapter import OrderAdapter
+from mainapp.microservice_both.parsers.edc_order import Base as OrderBase, EdcShipment
 
 
 logger = logging.getLogger('microservice_edc_pull.database')

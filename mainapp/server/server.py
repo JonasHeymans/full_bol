@@ -5,8 +5,12 @@ import xmltodict
 from support.database.database import EdcDatabase
 
 
-# create the Flask app
+# create the Flask mainapp
 app = Flask(__name__)
+
+@app.route("/")
+def home_view():
+        return "<h1>Welcome</h1>"
 
 @app.route("/edc_shipment", methods=['POST'])
 def main():

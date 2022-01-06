@@ -1,11 +1,11 @@
 from support.database.database import EdcDatabase, DatabaseSession
-from app.microservice_edc_pull.api.edc import EdcClient
-from app.microservice_edc_pull.parsers.converter import Converter
+from mainapp.microservice_edc_pull.api.edc import EdcClient
+from mainapp.microservice_edc_pull.parsers.converter import Converter
 
 from scheduler import order_update
 from support.logger.logger import Logger
-from app.microservice_bol.retailer.api.api import RetailerAPI
-from app.microservice_both.parsers.edc_order import EdcShipment
+from mainapp.microservice_bol.retailer.api.api import RetailerAPI
+from mainapp.microservice_both.parsers.edc_order import EdcShipment
 
 log = Logger().get_commandline_logger('info')
 

@@ -3,8 +3,8 @@ import logging
 import requests
 from decouple import config
 
-from app.microservice_bol.constants.constants import DeliveryCode, ConditionName
-from app.microservice_bol.retailer.models.models import (
+from mainapp.microservice_bol.constants.constants import DeliveryCode, ConditionName
+from mainapp.microservice_bol.retailer.models.models import (
     Invoice,
     Invoices,
     InvoiceSpecification,

@@ -1,15 +1,15 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from app.microservice_edc_pull.api.edc import EdcClient
-from app.microservice_edc_pull.parsers.converter import Converter
+from mainapp.microservice_edc_pull.api.edc import EdcClient
+from mainapp.microservice_edc_pull.parsers.converter import Converter
 
-from app.microservice_bol.retailer.api.api import RetailerAPI
+from mainapp.microservice_bol.retailer.api.api import RetailerAPI
 
 from support.logger.logger import Logger
 from support.database.database import BolDatabase, EdcDatabase
 from support.database.database_connection import DatabaseSession
 
-from app.microservice_both.parsers.edc_order import EdcShipment
+from mainapp.microservice_both.parsers.edc_order import EdcShipment
 
 
 # TODO remove the XML& pk files once I've pushed to db.

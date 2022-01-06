@@ -6,8 +6,8 @@ from typing import List
 
 import xmltodict
 
-from app.microservice_edc_pull import BASE_PATH
-from app.microservice_edc_pull.parsers.edc_parser import Variant
+from mainapp.microservice_edc_pull import BASE_PATH
+from mainapp.microservice_edc_pull.parsers.edc_parser import Variant
 
 from support.database.database_connection import DatabaseSession
 

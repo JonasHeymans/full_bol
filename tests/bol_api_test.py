@@ -1,7 +1,7 @@
 import time
 from support.database.database import DatabaseSession
-from app.microservice_bol.retailer.api.api import RetailerAPI
-from app.microservice_both.parsers.edc_order import EdcShipment
+from mainapp.microservice_bol.retailer.api.api import RetailerAPI
+from mainapp.microservice_both.parsers.edc_order import EdcShipment
 from support.logger.logger import Logger
 
 log = Logger().get_commandline_logger('info')

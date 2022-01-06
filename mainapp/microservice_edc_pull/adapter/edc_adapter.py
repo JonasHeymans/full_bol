@@ -5,11 +5,11 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
-from app.microservice_edc_pull.parsers.edc_parser import Product, Variant, Brand, Measures, Price, Pic, Category, \
+from mainapp.microservice_edc_pull.parsers.edc_parser import Product, Variant, Brand, Measures, Price, Pic, Category, \
     Property, \
     Bulletpoint, Discount  # Don't remove this
-from app.microservice_edc_pull.parsers.converter import Converter
-from app.microservice_edc_pull import BASE_PATH
+from mainapp.microservice_edc_pull.parsers.converter import Converter
+from mainapp.microservice_edc_pull import BASE_PATH
 
 
 class EdcAdapter:

@@ -132,16 +132,26 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/app/microservice_edc_pull/files/dict/full.pkl
-/app/microservice_edc_pull/files/dict/stock.pkl
-/app/microservice_edc_pull/files/dict/new.pkl
+/mainapp/microservice_edc_pull/files/dict/full.pkl
+/mainapp/microservice_edc_pull/files/dict/stock.pkl
+/mainapp/microservice_edc_pull/files/dict/new.pkl
 
-/app/microservice_edc_pull/files/feeds/discounts.csv
-/app/microservice_edc_pull/files/feeds/price_full.csv
-/app/microservice_edc_pull/files/feeds/stock.xml
-/app/microservice_edc_pull/files/feeds/full.xml
-/app/microservice_edc_pull/files/feeds/new.xml
-/app/microservice_edc_pull/files/feeds/price_update.csv
+/mainapp/microservice_edc_pull/files/feeds/discounts.csv
+/mainapp/microservice_edc_pull/files/feeds/price_full.csv
+/mainapp/microservice_edc_pull/files/feeds/stock.xml
+/mainapp/microservice_edc_pull/files/feeds/full.xml
+/mainapp/microservice_edc_pull/files/feeds/new.xml
+/mainapp/microservice_edc_pull/files/feeds/price_update.csv
 
-/app/microservice_edc_pull/documentation/manual_b2b_feeds_2016.pdf
+/mainapp/microservice_edc_pull/documentation/manual_b2b_feeds_2016.pdf
 
+/mainapp/microservice_edc_pull/files/feeds/discounts.csv
+/mainapp/microservice_edc_pull/files/dict/full.pkl
+/mainapp/microservice_edc_pull/files/feeds/full.xml
+/mainapp/microservice_edc_pull/documentation/manual_b2b_feeds_2016.pdf
+/mainapp/microservice_edc_pull/files/dict/new.pkl
+/mainapp/microservice_edc_pull/files/feeds/new.xml
+/mainapp/microservice_edc_pull/files/feeds/price_full.csv
+/mainapp/microservice_edc_pull/files/feeds/price_update.csv
+/mainapp/microservice_edc_pull/files/dict/stock.pkl
+/mainapp/microservice_edc_pull/files/feeds/stock.xml
