@@ -1,7 +1,11 @@
-from support.database.database import Database
-from app.microservice_edc_pull.libs.edc import EdcClient
+from support.database.database import EdcDatabase, DatabaseSession
+from app.microservice_edc_pull.api.edc import EdcClient
 from app.microservice_edc_pull.parsers.converter import Converter
+
+from scheduler import order_update
 from support.logger.logger import Logger
+from app.microservice_bol.retailer.api.api import RetailerAPI
+from app.microservice_both.parsers.edc_order import EdcShipment
 
 log = Logger().get_commandline_logger('info')
 
@@ -22,13 +26,6 @@ log = Logger().get_commandline_logger('info')
 # con.initial_convert('full')
 # con.initial_convert('new')
 # con.initial_convert('stock')
+#
+# db = EdcDatabase(connection_type='merge')
 
-db = Database(connection_type='merge')
-db.push_products_to_db('full', 'Product', 'Variant',
-                       "Price")
-
-db.push_products_to_db('new')
-db.push_stock_to_db()
-db.push_discounts_to_db()
-db.setup_prices()
-db.update_prices()

@@ -3,7 +3,7 @@ import logging
 import pickle
 from typing import List
 
-logger = logging.getLogger('microservice_edc_pull.products')
+logger = logging.getLogger(__name__)
 
 from app.microservice_edc_pull.parsers.edc_parser import Product, Variant, Brand, Measures, Price, Pic, Category, \
     Property, \
@@ -12,7 +12,7 @@ from app.microservice_edc_pull.parsers.converter import Converter
 from app.microservice_edc_pull import BASE_PATH
 
 
-class AllEdcProduct:
+class EdcAdapter:
 
     def __open_pickle(self, file_path):
         with open(f'{file_path}.pkl', 'rb') as f:
@@ -24,16 +24,16 @@ class AllEdcProduct:
 
     def get_products(self, classname: str, filename: str) -> List:
         file = self.__open_pickle(f"{BASE_PATH}/files/dict/{filename}")
-        d = {
+        to_convert = {
             'Category': 'categories',
             'Variant': 'variants',
             'Pic': 'pics',
             'Property': 'properties',
             'Bulletpoint': 'bulletpoints'
         }
-        if classname in d.keys():
+        if classname in to_convert.keys():
             conv = Converter()
-            file = conv.convert(file, d[classname])
+            file = conv.convert(file, to_convert[classname])
 
         logger.debug(f'Starting parsing of {classname}')
 

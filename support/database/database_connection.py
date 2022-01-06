@@ -31,3 +31,6 @@ class DatabaseSession:
         logger.debug(f'DatabaseSession closed. Total connection time: {(time.time() - self.starttime_connection)/60 :.2f} minutes')
 
 
+
+
+

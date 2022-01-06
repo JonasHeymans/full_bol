@@ -2,12 +2,26 @@
 
 original source: https://github.com/pennersr/python-bol-api
 
+Bol process flow: https://api.bol.com/retailer/public/Retailer-API/selling-on-bolcom-processflow.html
+
 bol.com reference: https://api.bol.com/retailer/public/redoc/v6#
 
 Migration Guide: https://api.bol.com/retailer/public/Retailer-API/v6/migrationguide/v4-v6/migrationguide.html
 
 Test cases: https://api.bol.com/retailer/public/Retailer-API/demo/v6-COMMISSIONS.html
 
+## Process flow
+
+| Step          | Methods                                                                            |
+|---------------|:-----------------------------------------------------------------------------------|
+| Update orders | -     db.push_orders_to_db()<br/>- db.push_order_to_db(order_id='1043946570')<br/> |
+| Order an item |                                                                                    |
+|               |                                                                                    |
+|               |      
+|               |      
+|               |      
+|               |      
+|               |      
 ## Orders
 
 All bol.com API- requests are implemented.
@@ -22,7 +36,7 @@ Form of this documentation: <bol_API_name> : <method_in_program>
 api.orders.cancel_order_item(order_item_id, reason_code)
 
 - Ship order item: api.orders.ship_order_item(order_item_id, 
-shipment_reference, shipping_label_code,transporter_code,track_and_trace,))
+shipment_reference, shipping_label_code,transporter_code,track_and_trace))
 
 
 ## Shipments
