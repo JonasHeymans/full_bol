@@ -1,0 +1,1 @@
+Unfortunately we cannot give an example script for the product import. The import strongly depends on your database configuration / webshop software.

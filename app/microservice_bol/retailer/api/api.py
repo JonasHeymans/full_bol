@@ -1,4 +1,5 @@
 import logging
+
 import requests
 from decouple import config
 
@@ -45,10 +46,14 @@ class OrderMethods(MethodGroup):
         if page is not None:
             params["page"] = page
         resp = self.request("GET", params=params)
+        logger.info(f'Got Orders: {params}')
+
         return Orders.parse(self.api, resp.text)
 
     def get(self, order_id):
         resp = self.request("GET", path=order_id)
+        logger.info(f'Got Order with id: {order_id}')
+
         return Order.parse(self.api, resp.text)
 
     def ship_order_item(
@@ -60,6 +65,7 @@ class OrderMethods(MethodGroup):
             track_and_trace=None,
     ):
         payload = {}
+        payload['orderItems'] = [{'orderItemId': str(order_item_id)}]
         if shipment_reference:
             payload["shipmentReference"] = shipment_reference
         if shipping_label_code:
@@ -73,16 +79,22 @@ class OrderMethods(MethodGroup):
                 "trackAndTrace"
             ] = track_and_trace
         resp = self.request(
-            "PUT", path=f"{order_item_id}/shipment", json=payload)
+            "PUT", path="shipment", json=payload)
+
+        logger.info(f'Shipped Order: {order_item_id}, payload = {payload}')
 
         return ProcessStatus.parse(self.api, resp.text)
 
     def cancel_order_item(self, order_item_id, reason_code):
-        payload = {"reasonCode": reason_code,
-                   'orderItemId': order_item_id}
+        payload = {'orderItems': [
+            {'orderItemId': order_item_id, "reasonCode": reason_code}
+        ]}
+
         resp = self.request(
-            "PUT", path=f"/cancellation", json=payload
+            "PUT", path=f"cancellation", json=payload
         )
+        logger.info(f'Cancelled Order Item: {order_item_id}, payload = {payload}')
+
         return ProcessStatus.parse(self.api, resp.text)
 
 
@@ -99,10 +111,14 @@ class ShipmentMethods(MethodGroup):
         if order_id:
             params["order_id"] = order_id
         resp = self.request("GET", params=params)
+        logger.info(f'Got Shipments: {params}')
+
         return Shipments.parse(self.api, resp.text)
 
     def get(self, shipment_id):
         resp = self.request("GET", path=str(shipment_id))
+        logger.info(f'Got Shipment with id: {shipment_id}')
+
         return Shipment.parse(self.api, resp.text)
 
 
@@ -138,7 +154,7 @@ class OfferMethods(MethodGroup):
                    'pricing': {'bundlePrices': bundle_prices},
                    'stock': {'amount': stock_amount,
                              'managedByRetailer': stock_managed_by_retailer},
-                   'fulfilment': {'type': fulfilment_type}
+                   'fulfilment': {'method': fulfilment_type}
                    }
 
         if condition_category:
@@ -150,7 +166,7 @@ class OfferMethods(MethodGroup):
                 "comment"
             ] = condition_comment
         if reference_code:
-            payload["referenceCode"] = reference_code
+            payload["reference"] = reference_code
         if on_hold_by_retailer:
             payload["onHoldByRetailer"] = on_hold_by_retailer
         if unknown_product_title:
@@ -166,12 +182,14 @@ class OfferMethods(MethodGroup):
 
         resp = self.request("POST", path="", json=payload)
 
-        logger.info(f'Created New Offer with EAN {ean}')
+        logger.info(f'Created New Offer with EAN {ean}, payload = {payload}')
 
         return ProcessStatus.parse(self.api, resp.text)
 
     def get(self, offer_id):
         resp = self.request("GET", path=offer_id)
+        logger.info(f'Got Offer with id {offer_id}')
+
         return Offer.parse(self.api, resp.text)
 
     def update_offer(
@@ -185,10 +203,10 @@ class OfferMethods(MethodGroup):
             fulfilment_pick_up_points=None,
     ):
 
-        payload = {'fulfilment': {'type': fulfilment_type}}
+        payload = {'fulfilment': {'method': fulfilment_type}}
 
         if reference_code:
-            payload["referenceCode"] = reference_code
+            payload["reference"] = reference_code
         if on_hold_by_retailer:
             payload["onHoldByRetailer"] = on_hold_by_retailer
         if unknown_product_title:
@@ -211,7 +229,7 @@ class OfferMethods(MethodGroup):
 
     def delete_offer(self, offer_id):
         self.request("DELETE", path=offer_id)
-        logger.info(f'Deleted Offer with id {offer_id}')
+        logger.info(f'Deleted Offer with id: {offer_id}')
 
     def update_price(self,
                      offer_id,
@@ -221,23 +239,23 @@ class OfferMethods(MethodGroup):
         payload = {'pricing': {'bundlePrices': bundle_prices}}
 
         for x in bundle_prices:
-            if list(x.keys()) != ['quantity', 'price']:
+            if list(x.keys()) != ['quantity', 'unitPrice']:
                 print(x.keys())
-                raise ValueError('Keys need to be quantity and price')
+                raise ValueError('Keys need to be quantity and unitPrice')
 
         resp = self.request("PUT", path=f"{offer_id}/price", json=payload)
-        logger.info(f'Updated Prices for Offer with id {offer_id}')
+        logger.info(f'Updated Prices for Offer with id {offer_id}, payload = {payload}')
 
         return ProcessStatus.parse(self.api, resp.text)
 
     def update_stock(self,
                      offer_id,
-                     amount,
+                     stock_amount,
                      managed_by_retailer=False
                      ):
-        payload = {'amount': amount, 'managedByRetailer': managed_by_retailer}
+        payload = {'amount': stock_amount, 'managedByRetailer': managed_by_retailer}
         resp = self.request("PUT", path=f"{offer_id}/stock", json=payload)
-        logger.info(f'Updated Stock for Offer with id {offer_id}')
+        logger.info(f'Updated Stock for Offer with id {offer_id}, payload = {payload} ')
 
         return ProcessStatus.parse(self.api, resp.text)
 
@@ -251,6 +269,8 @@ class ProcessStatusMethods(MethodGroup):
         if page:
             params["page"] = page
         resp = self.request("GET", params=params)
+
+        logger.info(f'Got ProcessStatus: {params}')
         return ProcessStatuses.parse(self.api, resp.text)
 
 
@@ -261,10 +281,14 @@ class InvoiceMethods(MethodGroup):
     def list(self, period_start=None, period_end=None):
         params = {}
         resp = self.request("GET", params=params)
+        logger.info(f'Got Invoices: {params}')
+
         return Invoices.parse(self.api, resp.text)
 
     def get(self, invoice_id):
         resp = self.request("GET", path=str(invoice_id))
+        logger.info(f'Got Invoice with id: {invoice_id}')
+
         return Invoice.parse(self.api, resp.text)
 
     def get_specification(self, invoice_id, page=None):
@@ -274,6 +298,8 @@ class InvoiceMethods(MethodGroup):
         resp = self.request(
             "GET", path=f"{invoice_id}/specification", params=params
         )
+        logger.info(f'Got Invoice Specification for Invoice with id:{invoice_id},  {params}')
+
         return InvoiceSpecification.parse(self.api, resp.text)
 
 
@@ -372,6 +398,7 @@ class RetailerAPI(object):
             request_kwargs["headers"].update({
                 "content-type": "application/vnd.retailer.v6+json"
             })
+
         resp = self.session.request(**request_kwargs)
         resp.raise_for_status()
         return resp

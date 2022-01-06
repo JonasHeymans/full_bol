@@ -23,5 +23,5 @@
 - push_discounts_to_db() is also needed so price calculations will be accurate
 - Use push_products_to_db() to push this pickle-file to the db
 - Use push_stock_to_db() to update the stock
-- setup_prices() initial setup
-- update_prices() (Manual calculation is wrong)
+- push_full_prices_to_db() initial setup
+- push_new_prices_to_db() (Manual calculation is wrong)
