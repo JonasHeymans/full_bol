@@ -8,7 +8,7 @@ from support.database.database import EdcDatabase
 # create the Flask app
 app = Flask(__name__)
 
-@app.route("/", methods=['POST'])
+@app.route("/edc_shipment", methods=['POST'])
 def main():
     try:
         xml_data = request.get_data()
@@ -45,4 +45,4 @@ def main():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run()
