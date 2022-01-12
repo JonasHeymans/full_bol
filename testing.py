@@ -6,11 +6,11 @@ from scheduler import order_update
 from support.logger.logger import Logger
 from mainapp.microservice_bol.retailer.api.api import RetailerAPI
 from mainapp.microservice_both.parsers.edc_order import EdcShipment
+from scheduler import offer_update, full_setup
 
 log = Logger().get_commandline_logger('info')
 
 # Todo: when full/new is added, also update the update_stock field
-# todo what's "minprice"? (I saw it as an attribute in the raw files)
 # todo: enum for 'connection_type': merge, update or fill.
 #
 #
@@ -27,5 +27,12 @@ log = Logger().get_commandline_logger('info')
 # con.initial_convert('new')
 # con.initial_convert('stock')
 #
-# db = EdcDatabase(connection_type='merge')
+db = EdcDatabase(connection_type='merge')
+# db.push_products_to_db('full', 'Product', 'Variant', "Price")
+# db.push_products_to_db('new')
+# db.push_stock_to_db()
+# db.push_discounts_to_db()
+# db.push_full_prices_to_db()
+# db.push_new_prices_to_db()
 
+full_setup()

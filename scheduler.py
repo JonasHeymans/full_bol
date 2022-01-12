@@ -1,7 +1,10 @@
+import datetime as dt
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 from mainapp.microservice_edc_pull.api.edc import EdcClient
 from mainapp.microservice_edc_pull.parsers.converter import Converter
+from mainapp.microservice_edc_pull.parsers.edc_parser import Product, Price, Variant
+
 
 from mainapp.microservice_bol.retailer.api.api import RetailerAPI
 
@@ -159,6 +162,21 @@ def order_update():
 
     ## Confirm shipment on bol.com and choose shipment
 
+def offer_update():
+    # Get offers from db
+    with DatabaseSession() as session:
+        today = dt.datetime.today().date()
+        offers = session.query(Price)\
+            .join(Product, Price.artnr == Product.artnr)\
+            .join(Variant, Product.product_id == Variant.product_id)\
+            .filter(Product.restrictions_platform == 'N',
+                    Variant.stockestimate > 3,
+                     Variant.stock == 'Y',
+                    Price.buy_price > 40).all()
+
+
+
+
 
 @sched.scheduled_job('interval', minutes=15)
 def add_tracking():
@@ -168,7 +186,7 @@ def add_tracking():
 
     with DatabaseSession() as session:
         shipments = session.query(EdcShipment).filter(
-            (EdcShipment.status == 'shipped') & (EdcShipment.send_to_bol == False))
+            (EdcShipment.status == 'shipped') & (EdcShipment.send_to_bol == False)).all()
 
     # Send new tracking information to bol.com and update in our db
     api = RetailerAPI()

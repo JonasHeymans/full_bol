@@ -279,15 +279,19 @@ class billingDetails(Base, Item):
     kvkNumber = Column(String(50))
     orderReference = Column(String(256))
 
-class Offer():
-    pass
+# class Offer(Base, Item):
+#     __tablename__ = 'offers'
+#     __table_args__ = {'schema': schema_name}
+#
+#     def __init__(self, parent):
+#         super().__init__()
+#         self.parent = parent
+
+
+
 
 class fulfilment():
     pass
-
-
-
-
 
 class product():
     pass
