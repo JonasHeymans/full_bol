@@ -1,4 +1,5 @@
 import datetime as dt
+from sqlalchemy import func
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 from mainapp.microservice_edc_pull.api.edc import EdcClient
@@ -163,6 +164,14 @@ def order_update():
     ## Confirm shipment on bol.com and choose shipment
 
 def offer_update():
+    # Get bol offers
+    api = RetailerAPI()
+    api.login()
+    api.offers.list()
+    api.process_status.get()
+
+
+
     # Get offers from db
     with DatabaseSession() as session:
         today = dt.datetime.today().date()
@@ -172,9 +181,11 @@ def offer_update():
             .filter(Product.restrictions_platform == 'N',
                     Variant.stockestimate > 3,
                      Variant.stock == 'Y',
-                    Price.buy_price > 40).all()
-
-
+                    Price.buy_price < 40,
+                    func.date(Variant.update_date_stock) == today
+                    ).values('ean')
+        all_offers = [o for o in offers]
+        x = 3
 
 
 

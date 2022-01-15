@@ -1,4 +1,5 @@
 import logging
+import time
 
 import requests
 from decouple import config
@@ -180,7 +181,7 @@ class OfferMethods(MethodGroup):
                 "pickUpPoints"
             ] = fulfilment_pick_up_points
 
-        resp = self.request("POST", path="", json=payload)
+        resp = self.request("POST", path="")
 
         logger.info(f'Created New Offer with EAN {ean}, payload = {payload}')
 
@@ -191,6 +192,18 @@ class OfferMethods(MethodGroup):
         logger.info(f'Got Offer with id {offer_id}')
 
         return Offer.parse(self.api, resp.text)
+
+    def list(self):
+        payload = {
+            "format": "CSV"
+        }
+        resp = self.request("POST", path='export', json=payload)
+        logger.info(f'Getting Offers')
+
+        time.sleep(5)
+        ProcessStatus.parse(self.api, resp.text)
+
+        resp = self.request("POST", path=f'export/{entityId}')
 
     def update_offer(
             self,

@@ -145,6 +145,10 @@ class Converter:
     def __convert_date_format(self, file):
         logger.info('Converting date format')
         lst = []
+
+        # if we only have one product in new, this function otherwise bigs out
+        if not type(file) == list:
+            file = [file]
         for x in file:
             d = {}
             for y in x:
