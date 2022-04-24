@@ -1,4 +1,5 @@
 import logging
+import os
 import pickle
 import time
 from datetime import datetime
@@ -6,23 +7,33 @@ from typing import List
 
 import xmltodict
 
-from mainapp.microservice_edc_pull import BASE_PATH
-from mainapp.microservice_edc_pull.parsers.edc_parser import Variant
+from mainapp.microservice_supplier import BASE_PATH
 
-from support.database.database_connection import DatabaseSession
+logger = logging.getLogger('microservice_supplier.converter')
 
-
-logger = logging.getLogger('microservice_edc_pull.converter')
 
 class Converter:
+    def __init__(self, supplier):
+        self.supplier = supplier
+
+    def get_all_feeds_filenames(self):
+        path = f'{BASE_PATH}/files/{self.supplier}/feeds/'
+        return [os.path.splitext(filename)[0] for filename in os.listdir(path)
+                if os.path.splitext(filename)[1] == '.xml']
 
     def __convert_xml_to_list(self, xml_file_name, xml_attribs=True) -> List:
-        with open(f"{BASE_PATH}/files/feeds/{xml_file_name}.xml", "rb") as f:
+        with open(f"{BASE_PATH}/files/{self.supplier}/feeds/{xml_file_name}.xml", "rb") as f:
             logger.debug('Starting conversion from XML to dict')
             start = time.time()
             my_dictionary = xmltodict.parse(f, xml_attribs=xml_attribs)
-            logger.debug(f'Conversion from XML to dict Successful. Took {(time.time() - start)/60:.2f} minutes')
-            return my_dictionary['products']['product']
+            logger.debug(f'Conversion from XML to dict Successful. Took {(time.time() - start) / 60:.2f} minutes')
+
+            # Check that my_dictionary is not empty
+            if bool(my_dictionary['products']):
+                return my_dictionary['products']['product']
+            else:
+                with open(f"{BASE_PATH}/files/various/empty.xml", "rb") as f:
+                    return xmltodict.parse(f, xml_attribs=xml_attribs)
 
     '''Ok, this is like quite dirty... But I needed to do it because for example there can be 1 or 
     more variants for each product, and we don't know beforehand if- and how many variants 
@@ -76,7 +87,6 @@ class Converter:
 
         logger.debug(f'Converted {tablename}')
 
-
         return converted_file
 
     def __productid_generator(self, file):
@@ -119,7 +129,8 @@ class Converter:
 
             except TypeError as e:
                 # The first string can probably safly be removed.
-                if str(e) == 'pop() takes at most 1 argument (2 given)' or str(e) == "pop expected at most 1 argument, got 2":
+                if str(e) == 'pop() takes at most 1 argument (2 given)' or str(
+                        e) == "pop expected at most 1 argument, got 2":
                     for y in range(len(x)):
                         f = {}
                         f['product_id'] = d['product_id']
@@ -139,7 +150,6 @@ class Converter:
                     logger.warning(f"Could not add {name} of {d['product_id']}, skipping")
                     continue
 
-
         return lst
 
     def __convert_date_format(self, file):
@@ -154,7 +164,11 @@ class Converter:
             for y in x:
                 d[y] = x[y]
                 if y in ['date', 'modifydate']:
+                    if x['date'] == '00-00-0000':
+                        x['date'] = '01-01-1900'
+
                     d[y] = datetime.strptime(x['date'], "%d-%m-%Y").strftime("%Y-%m-%d")
+
             lst.append(d)
         return lst
 
@@ -238,7 +252,6 @@ class Converter:
         for x in range(len(file)):
             x = dict(file[x])
 
-
             new = dict((d1[key], value) for (key, value) in x.items())
             new['stock'] = new['stock'].replace('J', 'Y')
             lst.append(new)
@@ -272,7 +285,7 @@ class Converter:
                   'discount': 'discount',
                   'your_price': 'b2b',
                   'ean': 'ean',
-                  'discount_percentage':'discount_percentage',
+                  'discount_percentage': 'discount_percentage',
                   'brandid': 'brand_id',
                   'subartnr': 'subartnr',
                   'date': 'update_date',
@@ -284,7 +297,6 @@ class Converter:
             if type == 'setup':
                 price_dict['discount_percentage'] = price_dict['discount']
                 price_dict['discount'] = 'Y' if price_dict['discount'] else 'N'
-
 
             new = dict((d1[key], value) for (key, value) in price_dict.items() if key not in excluded)
             new['price'] = {}
@@ -299,20 +311,29 @@ class Converter:
                         if x == 'b2b':
                             new['price']['b2bsale'] = new['price']['b2b']
 
-
             lst.append(new)
 
         return lst
 
-    def initial_convert(self, filename):
+    def initial_convert(self, filenames):
+        for filename in filenames:
+            # kinda dirty, might want to clean this up later
+            if filename == 'stock':
+                with open(f"{BASE_PATH}/files/{self.supplier}/feeds/{filename}.xml", "rb") as f:
+                    file = xmltodict.parse(f, xml_attribs=True)
+            else:
+                file = self.__convert_xml_to_list(filename)
+                file = self.__convert_date_format(file)
 
-        # kinda dirty, might want to clean this up later
-        if filename == 'stock':
-            with open(f"{BASE_PATH}/files/feeds/{filename}.xml", "rb") as f:
-                file = xmltodict.parse(f, xml_attribs=True)
-        else:
-            file = self.__convert_xml_to_list(filename)
-            file = self.__convert_date_format(file)
+            self.__save_pickle(file, f"{BASE_PATH}/files/{self.supplier}/dict/{filename}.pkl")
 
-        self.__save_pickle(file, f"{BASE_PATH}/files/dict/{filename}.pkl")
-        return file
+
+class EdcConverter(Converter):
+    def __init__(self):
+        self.supplier = 'edc'
+        super().__init__(self.supplier)
+        self.filenames = super().get_all_feeds_filenames()
+
+    def initial_convert(self, *args):
+        args = self.filenames if args == () else args
+        super().initial_convert(args)

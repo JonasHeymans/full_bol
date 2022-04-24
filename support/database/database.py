@@ -1,25 +1,22 @@
 import logging
+import os
 import time
 
 from decouple import config
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.schema import CreateSchema
-
-from support.database.database_connection import DatabaseSession
 
 from mainapp.microservice_bol.adapter.adapter import BolAdapter
-from mainapp.microservice_bol.parsers.bol_classes import Base as BolBase, Order, Shipment, shipmentDetails, OrderItem, billingDetails
-
-from mainapp.microservice_edc_pull import ALL_EDC_CLASSES
-from mainapp.microservice_edc_pull.adapter.edc_adapter import EdcAdapter
-from mainapp.microservice_edc_pull.parsers.edc_parser import Base as EdcBase, Product, Variant, Price, Brand, Category, \
-    Measures, Property, Bulletpoint, Pic, Discount
-
+from mainapp.microservice_bol.parsers.bol_classes import Base as BolBase, Order, Shipment, shipmentDetails, OrderItem, \
+    billingDetails
 from mainapp.microservice_both.adapter.adapter import OrderAdapter
 from mainapp.microservice_both.parsers.edc_order import Base as OrderBase, EdcShipment
+from mainapp.microservice_supplier import BASE_PATH, ALL_EDC_CLASSES
+from mainapp.microservice_supplier.adapter.edc_adapter import Adapter
+from mainapp.microservice_supplier.parsers.base_classes import Base as EdcBase, Product, Variant, Price, Brand, \
+    Category, Measures, Property, Bulletpoint, Pic, Discount
+from support.database.database_connection import DatabaseSession
 
-
-logger = logging.getLogger('microservice_edc_pull.database')
+logger = logging.getLogger('microservice_supplier.database')
 
 
 def split_list(lst, chunk_size):
@@ -48,7 +45,7 @@ class Database:
         BolBase.metadata.create_all(DatabaseSession().engine)
         OrderBase.metadata.create_all(DatabaseSession().engine)
 
-    def __push_to_df(self, lst, update_target_id, update_target_class):
+    def __push_to_db(self, lst, update_target_id, update_target_class):
         try:
             with DatabaseSession() as session:
                 for item in lst:
@@ -118,71 +115,117 @@ class Database:
                           'shipmentdetails': [shipmentDetails, 'orderId'],
                           'orderitems': [OrderItem, 'orderItemId'],
                           'billingdetails': [billingDetails, 'orderId'],
-                          'edcshipment':[EdcShipment, 'ordernumber']}
+                          'edcshipment': [EdcShipment, 'ordernumber']}
 
         update_target_class = update_targets[update_target][0]
         update_target_id = getattr(update_target_class, update_targets[update_target][1])
 
         new_lst = split_list(file, 500)
         for lst in new_lst:
-            self.__push_to_df(lst, update_target_id, update_target_class)
-            logger.info(f'Completed {new_lst.index(lst) + 1} of {len(new_lst)}')
+            self.__push_to_db(lst, update_target_id, update_target_class)
+            logger.debug(f'Completed {new_lst.index(lst) + 1} of {len(new_lst)}')
 
-        logger.info(f'Successfully added {update_target} to Database in {(time.time() - starttime) / 60 :.2f} minutes!')
+        logger.debug(
+            f'Successfully inserted {update_target} to Database in {(time.time() - starttime) / 60 :.2f} minutes!')
 
 
-class EdcDatabase(Database):
-    def __init__(self, connection_type):
+class SupplierDatabase(Database):
+    def __init__(self, connection_type, supplier, supplier_classes):
         super().__init__(connection_type)
+        self.supplier = supplier
+        self.supplier_classes = supplier_classes
 
-    def push_products_to_db(self, filename, *args):
+    def get_all_filenames(self, supplier):
+        SORT_ORDER = ["full", "new", "stock", "discounts", "full_price", "update_price"]
+
+        path = f'{BASE_PATH}/files/{self.supplier}/feeds/'
+        filenames = [os.path.splitext(filename)[0] for filename in os.listdir(path)]
+
+        return [x for x in SORT_ORDER if x in filenames]
+
+    def __add_products(self, filename, *args):
         logger.debug("Starting pushing products to db")
         full_starttime = time.time()
 
         # elegant way of saying: "if insert_in_db is not given any arguments of which classes to push,
         # then just push everything to the db"
-        args = ALL_EDC_CLASSES if args == () else args
-        logger.info(f"Pushing {args}")
+        args = self.supplier_classes if args == () else args
+        logger.debug(f"Pushing {args}")
 
         for arg in args:
-            edcpr = EdcAdapter()
-            file = edcpr.get_products(classname=arg, filename=filename)
+            adapter = Adapter(self.supplier, self.supplier_classes)
+            file = adapter.get_products(classname=arg, filename=filename)
 
-            logger.info(f'Starting on {arg}')
+            logger.debug(f'Starting on {arg}')
 
             self.insert_in_db(file, update_target=arg.lower())
 
         logger.info(f'Successfully added {args} to Database in {(time.time() - full_starttime) / 60 :.2f} minutes!')
 
-    def push_discounts_to_db(self):
-        eap = EdcAdapter()
-        file = eap.get_discounts()
-        logger.info('Pushing Discounts')
-        self.insert_in_db(file, update_target='discount')
+    def __add_full_products(self):
+        # TODO: Add functionality so that we do not only add product, variant and price but that the user can choose
+        #  what they want to add
+        self.__add_products('full', 'Product', 'Variant', "Price")
 
-    def push_stock_to_db(self):
-        eap = EdcAdapter()
-        file = eap.get_stock()
-        logger.info('Pushing Stock')
+    def __add_new_products(self):
+        self.__add_products('new', 'Product', 'Variant', "Price")
+
+    def __add_stock(self):
+        adapter = Adapter(self.supplier, self.supplier_classes)
+        file = adapter.get_stock()
         self.insert_in_db(file, update_target='stock')
 
-    def push_full_prices_to_db(self):
-        eap = EdcAdapter()
-        file = eap.setup_prices()
-        logger.info('Pushing Full Prices')
+    def __add_discounts(self):
+        adapter = Adapter(self.supplier, self.supplier_classes)
+        file = adapter.get_discounts()
+        self.insert_in_db(file, update_target='discount')
+
+    def __add_full_prices(self):
+        adapter = Adapter(self.supplier, self.supplier_classes)
+        file = adapter.setup_prices()
         self.insert_in_db(file, update_target='price')
 
-    def push_new_prices_to_db(self):
-        eap = EdcAdapter()
-        file = eap.update_prices()
-        logger.info('Pushing New Prices')
+    def __add_new_prices(self):
+        adapter = Adapter(self.supplier, self.supplier_classes)
+        file = adapter.update_prices()
         self.insert_in_db(file, update_target='price')
-        
-    def push_shipment_to_db(self, file):
+
+    def __add_shipment(self, file):
         oap = OrderAdapter()
         file = oap.setup_shipment(file)
-        logger.info('Pushing Full Prices')
         self.insert_in_db(file, update_target='edcshipment')
+
+    def add_to_db(self, filenames):
+
+        add_methods = {
+            'full': self.__add_full_products,
+            'new': self.__add_new_products,
+            'stock': self.__add_stock,
+            'discounts': self.__add_discounts,
+            'full_price': self.__add_full_prices,
+            'update_price': self.__add_new_prices
+
+        }
+
+        for filename in filenames:
+            logger.info(f'Adding {filename.title()}')
+            add_methods[filename]()
+            logger.info(f'Added {filename.title()}')
+
+
+class EdcDatabase(SupplierDatabase):
+    def __init__(self, connection_type):
+        self.supplier = 'edc'
+        self.supplier_classes = ALL_EDC_CLASSES
+        super().__init__(connection_type,
+                         self.supplier,
+                         self.supplier_classes)
+
+        self.filenames = super().get_all_filenames(self.supplier)
+
+    def add_to_db(self, *args):
+        filenames = self.filenames if args == () else args
+        super().add_to_db(filenames)
 
 
 class BolDatabase(Database):
@@ -190,23 +233,24 @@ class BolDatabase(Database):
         super().__init__(connection_type)
 
     def __push_to_db(self, classes, order_id=None):
-        logger.info('Started Pushing Order to db')
+        logger.debug('Started Pushing Order to db')
         full_starttime = time.time()
 
-        logger.info(f"Pushing {classes}")
+        logger.debug(f"Pushing {classes}")
 
         for cls in classes:
             bopr = BolAdapter()
             file = bopr.convert_item(classname=cls, order_id=order_id)
 
-            logger.info(f'Starting on {cls}')
+            logger.debug(f'Starting on pushing {cls}')
 
             self.insert_in_db(file, update_target=cls.lower())
 
-        logger.info(f'Successfully added {classes} to Database in {(time.time() - full_starttime) / 60 :.2f} minutes!')
+        logger.debug(
+            f'Successfully pushed {classes} to Database in {(time.time() - full_starttime) / 60 :.2f} minutes!')
 
     def push_order_to_db(self, order_id):
-        classes = ['Order', 'shipmentDetails', 'orderItems','billingDetails']
+        classes = ['Order', 'shipmentDetails', 'orderItems', 'billingDetails']
         self.__push_to_db(classes, order_id)
 
     def push_orders_to_db(self):
@@ -214,7 +258,6 @@ class BolDatabase(Database):
         self.__push_to_db(classes)
 
     def push_offers_to_bol(self):
-
         # get products from EDC db
         with DatabaseSession() as session:
             pass
@@ -227,11 +270,3 @@ class BolDatabase(Database):
         # Remove offers that we do not sell any more from bol
         ## API call to bol.com
         ## Update this also in our own db, with a bool "online"
-
-
-
-
-
-
-
-

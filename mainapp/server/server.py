@@ -29,7 +29,7 @@ def main():
 
 
         db = EdcDatabase(connection_type='fill')
-        db.push_shipment_to_db(dct)
+        db.add_shipment(dct)
 
         resp = jsonify(success=True)
         resp.status_code = 200

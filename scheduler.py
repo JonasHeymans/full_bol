@@ -1,20 +1,16 @@
 import datetime as dt
-from sqlalchemy import func
+
 from apscheduler.schedulers.blocking import BlockingScheduler
-
-from mainapp.microservice_edc_pull.api.edc import EdcClient
-from mainapp.microservice_edc_pull.parsers.converter import Converter
-from mainapp.microservice_edc_pull.parsers.edc_parser import Product, Price, Variant
-
+from sqlalchemy import func
 
 from mainapp.microservice_bol.retailer.api.api import RetailerAPI
-
-from support.logger.logger import Logger
+from mainapp.microservice_both.parsers.edc_order import EdcShipment
+from mainapp.microservice_supplier.api.supplier import EdcClient
+from mainapp.microservice_supplier.parsers.converter import EdcConverter
+from mainapp.microservice_supplier.parsers.base_classes import Product, Price, Variant
 from support.database.database import BolDatabase, EdcDatabase
 from support.database.database_connection import DatabaseSession
-
-from mainapp.microservice_both.parsers.edc_order import EdcShipment
-
+from support.logger.logger import Logger
 
 # TODO remove the XML& pk files once I've pushed to db.
 # TODO Break up converter.__loop_through_products into multiple functions/refactor so that it is easier to read
@@ -47,6 +43,7 @@ Timings of each request:
 
 sched = BlockingScheduler()
 
+
 # General methods
 @sched.scheduled_job('interval', minutes=10)
 def up_reminder():
@@ -55,48 +52,35 @@ def up_reminder():
     for job in sched.get_jobs():
         log.info(f'{job.name.title()}: next run at {job.next_run_time}, trigger for {job.trigger}')
 
+
 # EDC methods
 @sched.scheduled_job('cron', hour=3)
 def full_setup():
     edc = EdcClient()
-    edc.download_products('full')
-    edc.download_products('new')
-    edc.download_stock()
-    edc.download_discounts()
-    edc.download_prices('full')
-    edc.download_prices('update')
+    edc.download()
 
-    con = Converter()
-    con.initial_convert('full')
-    con.initial_convert('new')
-    con.initial_convert('stock')
+    con = EdcConverter()
+    con.initial_convert()
 
     db = EdcDatabase(connection_type='merge')
-    db.push_products_to_db('full', 'Product', 'Variant', "Price")
-
-    db.push_products_to_db('new')
-    db.push_stock_to_db()
-    db.push_discounts_to_db()
-    db.push_full_prices_to_db()
-    db.push_new_prices_to_db()
-
+    db.add_to_db()
 
 # @sched.scheduled_job('cron', day_of_week='mon', hour=3)
 def full_product_update():
     edc = EdcClient()
-    edc.download_products('full')
+    edc.download('full')
 
-    con = Converter()
+    con = EdcConverter()
     con.initial_convert('full')
 
     db = EdcDatabase(connection_type='merge')
-    db.push_products_to_db('full')
-    db.push_stock_to_db()
+    db.add_products('full')
+    db.add_stock()
 
     edc.download_discounts()
-    db.push_discounts_to_db()
+    db.add_discounts()
 
-    db.push_new_prices_to_db()
+    db.add_new_prices()
 
     # TODO: bol-side implementation
 
@@ -104,17 +88,17 @@ def full_product_update():
 # @sched.scheduled_job('cron', day_of_week='sat', hour=3)
 def new_product_update():
     edc = EdcClient()
-    edc.download_products('new')
+    edc.download('new')
 
-    con = Converter()
+    con = EdcConverter()
     con.initial_convert('new')
 
     db = EdcDatabase(connection_type='merge')
-    db.push_products_to_db('new')
+    db.add_to_db('new')
 
     # Maybe I don't really need this here, but is not resource intensive so YOLO
     edc.download_discounts()
-    db.push_discounts_to_db()
+    db.add_discounts()
 
     # TODO: bol-side implementation
 
@@ -128,14 +112,13 @@ def stock_update():
     con.initial_convert('stock')
 
     db = EdcDatabase(connection_type='merge')
-    db.push_stock_to_db()
+    db.add_stock()
 
     # TODO: bol-side implementation
 
 
-
 @sched.scheduled_job('cron', minute=00)
-def price_update():
+def update_price():
     edc = EdcClient()
     edc.download_prices('full')
     edc.download_prices('update')
@@ -143,15 +126,14 @@ def price_update():
     db = EdcDatabase(connection_type='merge')
 
     # Setup is probably not necessary here but yolo
-    db.push_full_prices_to_db()
-    db.push_new_prices_to_db()
+    db.add_full_prices()
+    db.add_new_prices()
 
     # TODO: bol-side implementation
 
 
 # Bol Methods
 def order_update():
-
     ## Retrieve orders from bol and to db
 
     db = BolDatabase(connection_type='merge')
@@ -163,6 +145,7 @@ def order_update():
 
     ## Confirm shipment on bol.com and choose shipment
 
+
 def offer_update():
     # Get bol offers
     api = RetailerAPI()
@@ -170,23 +153,20 @@ def offer_update():
     api.offers.list()
     api.process_status.get()
 
-
-
     # Get offers from db
     with DatabaseSession() as session:
         today = dt.datetime.today().date()
-        offers = session.query(Price)\
-            .join(Product, Price.artnr == Product.artnr)\
-            .join(Variant, Product.product_id == Variant.product_id)\
+        offers = session.query(Price) \
+            .join(Product, Price.artnr == Product.artnr) \
+            .join(Variant, Product.product_id == Variant.product_id) \
             .filter(Product.restrictions_platform == 'N',
                     Variant.stockestimate > 3,
-                     Variant.stock == 'Y',
+                    Variant.stock == 'Y',
                     Price.buy_price < 40,
                     func.date(Variant.update_date_stock) == today
                     ).values('ean')
-        all_offers = [o for o in offers]
+        [o for o in offers]
         x = 3
-
 
 
 @sched.scheduled_job('interval', minutes=15)
@@ -211,4 +191,3 @@ def add_tracking():
                                    shipping_label_code=None,
                                    transporter_code='TNT',
                                    track_and_trace=shipment.tracktrace)
-

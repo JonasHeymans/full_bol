@@ -2,13 +2,13 @@ from sqlalchemy import Column, Integer, String, TEXT, Boolean, DateTime, Date, F
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from mainapp.microservice_bol.parsers.enums import TimeFrameType, DistributionParty, Salutation
+from mainapp.microservice_bol.constants.constants import TimeFrameType, DistributionParty, Salutation, ConditionName, FulfilmentMethod,DeliveryCode
 
 Base = declarative_base()
 schema_name = 'bol'
 
 
-class Item():
+class Item:
     def extract(self, to_extract, top_level=None):
         try:
             if top_level:
@@ -182,7 +182,7 @@ class shipmentDetails(Base, Item):
     order = relationship("Order", back_populates="shipmentdetails")
 
     pickupPointName = Column(String(256))
-    salutation = Column(Enum(Salutation)),
+    salutation = Column(Enum(Salutation))
     firstName = Column(String(256))
     surname = Column(String(256))
     streetName = Column(String(256))
@@ -262,7 +262,7 @@ class billingDetails(Base, Item):
     orderId = Column(String(32), ForeignKey(f'{schema_name}.orders.orderId'), primary_key=True)
     order = relationship("Order", back_populates="billingdetails")
 
-    salutation = Column(Enum(Salutation)),
+    salutation = Column(Enum(Salutation))
     firstName = Column(String(256))
     surname = Column(String(256))
     streetName = Column(String(256))
@@ -279,16 +279,56 @@ class billingDetails(Base, Item):
     kvkNumber = Column(String(50))
     orderReference = Column(String(256))
 
-# class Offer(Base, Item):
-#     __tablename__ = 'offers'
-#     __table_args__ = {'schema': schema_name}
-#
-#     def __init__(self, parent):
-#         super().__init__()
-#         self.parent = parent
+class Offer(Base, Item):
+    __tablename__ = 'offers'
+    __table_args__ = {'schema': schema_name}
+
+    def __init__(self, parent):
+        super().__init__()
+        self.parent = parent
+
+        self.ean = self.extract('ean')
+        self.condition = self.extract('condition')
+        self.reference = self.extract('reference')
+        self.onHoldByRetailer = self.extract('onHoldByRetailer')
+        self.stockamount = self.extract('stockamount')
+        self.managedByRetailer = True
+        self.fulfilmentmethod = self.extract('fulfilmentmethod')
+        self.deliverycode  = self.extract('deliverycode')
+
+    ean = Column(BIGINT, primary_key=True)
+    condition = Column(Enum(ConditionName))
+    reference = Column(String(10))
+    onHoldByRetailer = Column(Boolean)
+    stockamount = Column(Integer)
+    managedByRetailer = Column(Boolean)
+    fulfilmentmethod = Column(Enum(FulfilmentMethod))
+    deliverycode = Column(Enum(DeliveryCode))
+
+    prices = relationship("Price", back_populates='offer')
 
 
 
+class Price(Base, Item):
+    __tablename__ = 'prices'
+    __table_args__ = {'schema': schema_name}
+
+
+    def __init__(self, parent):
+        super().__init__()
+        self.parent = parent
+
+        self.quantity = self.extract('quantity')
+        self.unitPrice = self.extract('unitPrice')
+
+
+    id = Column(Integer, primary_key=True , autoincrement=True)
+
+    quantity = Column(Integer)
+    unitPrice = Column(Integer)
+
+    offer_id = Column(BIGINT, ForeignKey(f'{schema_name}.offers.ean'))
+    offer = relationship("Offer", back_populates="prices")
 
 class fulfilment():
     pass

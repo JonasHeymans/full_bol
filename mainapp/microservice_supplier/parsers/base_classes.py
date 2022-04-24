@@ -3,8 +3,8 @@ import math
 from datetime import datetime as dt
 
 import numpy as np
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Date, TEXT, Float, CHAR, BIGINT, ForeignKey, Table, Boolean, DateTime
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 from support.database.database_connection import DatabaseSession
@@ -17,15 +17,15 @@ from support.database.database_connection import DatabaseSession
 # todo does not seem to include remaining and remaining_quantity in variants, update: this todo seems to be fixed?
 
 Base = declarative_base()
+schema_name = 'suppliers'
 
-logger = logging.getLogger('microservice_edc_pull.parser')
+logger = logging.getLogger('microservice_supplier.parser')
 
 brands_products_association = Table('brands_products', Base.metadata,
-                                    Column('products_id', Integer, ForeignKey('products.product_id')),
-                                    Column('brands_id', Integer, ForeignKey('brands.brand_id')))
+                                    Column('products_id', Integer, ForeignKey(f'{schema_name}.products.product_id')),
+                                    Column('brands_id', Integer, ForeignKey(f'{schema_name}.brands.brand_id')))
 
 
-#
 # categories_products_association = Table('categories_products', Base.metadata,
 #                                 Column('products_id', Integer, ForeignKey('products.id')),
 #                                 Column('categories_id', Integer, ForeignKey('categories.product_id')))
@@ -42,8 +42,10 @@ brands_products_association = Table('brands_products', Base.metadata,
 
 class Product(Base):
     __tablename__ = 'products'
+    __table_args__ = {'schema': schema_name}
 
-    def __init__(self, parent):
+    def __init__(self, parent, supplier):
+        self.supplier = supplier
         self.product_id = parent['id']
         self.artnr = parent.pop('artnr', None)
         self.title = parent.pop('title', None)
@@ -65,6 +67,9 @@ class Product(Base):
 
     def __repr__(self):
         return f"Product object with product_id '{self.product_id}', artnr '{self.artnr}', title '{self.title}', enz"
+
+    supplier = Column(String(50))
+
 
     # TODO further split up the percentages in materials (via regex?)
     product_id = Column(Integer, primary_key=True)
@@ -93,14 +98,21 @@ class Product(Base):
 
     brands = relationship("Brand", secondary=brands_products_association)
     # bulletpoints = relationship("Bulletpoint", secondary=bulletpoints_products_association)
-    # # categories = relationship("Category", secondary=categories_products_association)
-    # # properties = relationship("Property", secondary=properties_products_association)
+    # categories = relationship("Category", secondary=categories_products_association)
+    # properties = relationship("Property", secondary=properties_products_association)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'products',
+        'polymorphic_on': supplier
+    }
 
 
 class Variant(Base):
     __tablename__ = 'variants'
+    __table_args__ = {'schema': schema_name}
 
-    def __init__(self, parent):
+    def __init__(self, parent, supplier):
+        self.supplier = supplier
         self.product_id = parent['product_id']
         self.variant_id = parent.pop('id', None)
         self.type = parent.pop('type', None)
@@ -115,11 +127,12 @@ class Variant(Base):
         self.remaining_quantity = parent.pop('remaining_quantity', None)
         self.update_date = dt.now()
 
-
     def __repr__(self):
         return f"Variant object with product_id '{self.product_id}', subartnr '{self.subartnr}', type '{self.type}', enz"
 
-    variant_id = Column(Integer, )
+    supplier = Column(String(50))
+
+    variant_id = Column(Integer)
     type = Column(String(255))
     subartnr = Column(String(255), primary_key=True)
     ean = Column(BIGINT)
@@ -133,8 +146,12 @@ class Variant(Base):
     update_date_stock = Column(DateTime)
     update_date = Column(DateTime)
 
+    product_id = Column(Integer, ForeignKey(f'{schema_name}.products.product_id'))
 
-    product_id = Column(Integer, ForeignKey('products.product_id'))
+    __mapper_args__ = {
+        'polymorphic_identity': 'variants',
+        'polymorphic_on': supplier
+    }
 
     def stock_update(self):
         self.update_date_stock = dt.now()
@@ -148,30 +165,43 @@ class Variant(Base):
         return p
 
 
+
+
 class Brand(Base):
     __tablename__ = 'brands'
+    __table_args__ = {'schema': schema_name}
 
-    def __init__(self, parent):
+    def __init__(self, parent, supplier):
+        self.supplier = supplier
         self.product_id = parent['id']
         self.brand_id = parent['brand'].pop('id', None)
         self.title = parent['brand'].pop('title', None)
         self.update_date = dt.now()
-
+        
 
     def __repr__(self):
         return f"Brand object with product_id '{self.product_id}', brand_id '{self.brand_id}' and title '{self.title}'"
+
+    supplier = Column(String(50))
+
 
     brand_id = Column(Integer, primary_key=True)
     product_id = Column(Integer)
     title = Column(String(255))
     update_date = Column(DateTime)
 
+    __mapper_args__ = {
+        'polymorphic_identity': 'brands',
+        'polymorphic_on': supplier
+    }
 
 
 class Price(Base):
     __tablename__ = 'prices'
+    __table_args__ = {'schema': schema_name}
 
-    def __init__(self, parent):
+    def __init__(self, parent, supplier):
+        self.supplier = supplier
         self.artnr = parent['artnr']
         self.product_id = parent.pop('id', None)
         self.discount = parent['price'].pop('discount', None)
@@ -179,12 +209,14 @@ class Price(Base):
         self.update_date = dt.now()
         self.b2bsale = float(parent['price'].pop('b2bsale', np.nan))
 
-        self.buy_price = self.__calculate_buy_price(self.b2b,self.b2bsale, self.discount, self.discount_percentage)
+        self.buy_price = self.__calculate_buy_price(self.b2b, self.b2bsale, self.discount, self.discount_percentage)
         self.our_price = self.__calculate_sellprice(self.buy_price)
-
 
     def __repr__(self):
         return f"Price object with artnr '{self.artnr}', currency '{self.currency}', b2b '{self.b2b}', enz"
+
+    supplier = Column(String(50))
+
 
     product_id = Column(Integer)
     subartnr = Column(String(100))
@@ -204,8 +236,13 @@ class Price(Base):
     our_price = Column(Float)
     b2bsale = Column(Float)
 
-    artnr = Column(String(255), ForeignKey('products.artnr'), primary_key=True)
+    artnr = Column(String(255), ForeignKey(f'{schema_name}.products.artnr'), primary_key=True)
     products = relationship("Product", back_populates="prices")
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'prices',
+        'polymorphic_on': supplier
+    }
 
     def add_init_attibutes(self, parent):
 
@@ -227,7 +264,6 @@ class Price(Base):
         self.b2c = float(parent['price'].pop('b2c', np.nan))
         self.brand_id = parent['brand'].pop('id', None)
         # self.__get_discount_percentage(self.brand_id )
-
 
     # Math seems to be ok, but still edc gives other prices on their site. So use the provided feed instead of calculating it yourself
     def __calculate_buy_price(self, b2b_price, b2bsale, discount, discount_percentage):
@@ -286,8 +322,10 @@ class Price(Base):
 
 class Measures(Base):
     __tablename__ = 'measures'
+    __table_args__ = {'schema': schema_name}
 
-    def __init__(self, parent):
+    def __init__(self, parent, supplier):
+        self.supplier = supplier
         if parent['measures'] and parent['id'] != None:
             self.product_id = parent['id']
             self.insertiondepth = parent['measures'].pop('insertiondepth', 0)
@@ -301,7 +339,10 @@ class Measures(Base):
         return f"Measures object with product_id '{self.product_id}'," \
                f"insertiondepth '{self.insertiondepth}', length '{self.length}', enz"
 
-    product_id = Column(Integer, ForeignKey('products.product_id'), primary_key=True)
+    supplier = Column(String(50))
+
+
+    product_id = Column(Integer, ForeignKey(f'{schema_name}.products.product_id'), primary_key=True)
     maxdiameter = Column(Float)
     insertiondepth = Column(Float)
     weight = Column(Integer)
@@ -309,40 +350,51 @@ class Measures(Base):
     length = Column(Float)
     update_date = Column(DateTime)
 
-
     products = relationship("Product", back_populates="measures")
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'measures',
+        'polymorphic_on': supplier
+    }
 
 
 # TODO can't I here not also include the product_id?
 class Pic(Base):
     __tablename__ = 'pics'
+    __table_args__ = {'schema': schema_name}
 
-    def __init__(self, parent):
+    def __init__(self, parent, supplier):
+        self.supplier = supplier
         self.product_id = parent['product_id']
         self.artnr = parent['id']
         self.pic = parent['pic']
         self.update_date = dt.now()
 
-
     def __repr__(self):
         return f"Pic object with artnr '{self.artnr}' and pic '{self.pic}'"
+
+    supplier = Column(String(50))
+
 
     pic = Column(String(255), primary_key=True)
     artnr = Column(String(255))
     update_date = Column(DateTime)
 
-
-    product_id = Column(Integer, ForeignKey('products.product_id'))
+    product_id = Column(Integer, ForeignKey(f'{schema_name}.products.product_id'))
 
 
 class Category(Base):
     __tablename__ = 'categories'
+    __table_args__ = {'schema': schema_name}
 
-    def __init__(self, parent):
+    def __init__(self, parent, supplier):
+        self.supplier = supplier
         self.product_id = parent['product_id']
         self.category_id = parent['id']
         self.title = parent['title']
         self.update_date = dt.now()
+
+    supplier = Column(String(50))
 
 
     product_id = Column(Integer)
@@ -350,43 +402,56 @@ class Category(Base):
     title = Column(String(255))
     update_date = Column(DateTime)
 
-
     def __repr__(self):
         return f"Category object with product_id '{self.product_id}', category_id '{self.category_id}' and title '{self.title}'"
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'categories',
+        'polymorphic_on': supplier
+    }
 
 
 class Bulletpoint(Base):
     __tablename__ = 'bulletpoints'
+    __table_args__ = {'schema': schema_name}
 
-    def __init__(self, parent):
+    def __init__(self, parent, supplier):
+        self.supplier = supplier
         self.product_id = parent['product_id']
         self.bp = parent['bp']
         self.update_date = dt.now()
 
-
     def __repr__(self):
         return f"Bulletpoint object with product_id '{self.product_id}' and bulletpoint '{self.bp}'"
+
+    supplier = Column(String(50))
+
 
     bp = Column(String(255), primary_key=True)
     product_id = Column(Integer)
     update_date = Column(DateTime)
 
+    __mapper_args__ = {
+        'polymorphic_identity': 'bulletpoints',
+        'polymorphic_on': supplier
+    }
 
 
 class Property(Base):
     __tablename__ = 'properties'
+    __table_args__ = {'schema': schema_name}
 
     # Note that valueid is not necessarily equal to value_id. Why, I don't know/
     # TODO Properties is still way too confusing, i don't really understand what all the relationships are.
 
-    def __init__(self, parent):
+    def __init__(self, parent, supplier):
+        self.supplier = supplier
         self.product_id = parent['product_id']
         self.propid = parent['propid']
         self.property = parent['property']
         self.valueid = parent['valueid']
         self.value = parent['value']
         self.update_date = dt.now()
-
 
         try:
             self.value_id = parent['id']
@@ -401,6 +466,9 @@ class Property(Base):
     def __repr__(self):
         return f"Property object with product_id '{self.product_id}' and propid '{self.propid}'"
 
+    supplier = Column(String(50))
+
+
     propid = Column(Integer, primary_key=True)
     product_id = Column(Integer)
     property = Column(String(255))
@@ -412,26 +480,38 @@ class Property(Base):
     magnitude = Column(Integer)
     update_date = Column(DateTime)
 
+    __mapper_args__ = {
+        'polymorphic_identity': 'properties',
+        'polymorphic_on': supplier
+    }
 
 
 # Still none of the MXM's works
 
 class Discount(Base):
     __tablename__ = 'discounts'
+    __table_args__ = {'schema': schema_name}
 
-    def __init__(self, parent):
+    def __init__(self, parent, supplier):
+        self.supplier = supplier
         self.brand_id = parent[0]
         self.brandname = parent[1]
         self.discount = parent[2]
         self.update_date = dt.now()
 
-
     def __repr__(self):
         return f"Discount object with brand_id '{self.brand_id}', " \
                f"brandname '{self.brandname}' and discount '{self.discount}'"
+
+    supplier = Column(String(50))
+
 
     brand_id = Column(Integer, primary_key=True)
     brandname = Column(String(255))
     discount = Column(Integer)
     update_date = Column(DateTime)
 
+    __mapper_args__ = {
+        'polymorphic_identity': 'discounts',
+        'polymorphic_on': supplier
+    }

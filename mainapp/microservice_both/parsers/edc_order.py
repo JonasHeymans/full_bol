@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
-schema_name = 'edc_order'
+schema_name = 'edc'
 
 
 class EdcOrder:
@@ -10,7 +10,7 @@ class EdcOrder:
 
 
 class EdcShipment(Base):
-    __tablename__ = 'edcshipments'
+    __tablename__ = 'edc_shipments'
     __table_args__ = {'schema': schema_name}
 
     def __init__(self, parent):

@@ -19,8 +19,10 @@ class DatabaseSession:
 
         if not self.engine.dialect.has_schema(self.engine, 'bol'):
             self.engine.execute(CreateSchema('bol'))
-        if not self.engine.dialect.has_schema(self.engine, 'edc_order'):
-            self.engine.execute(CreateSchema('edc_order'))
+        if not self.engine.dialect.has_schema(self.engine, 'suppliers'):
+            self.engine.execute(CreateSchema('suppliers'))
+        if not self.engine.dialect.has_schema(self.engine, 'edc'):
+            self.engine.execute(CreateSchema('edc'))
 
     def __enter__(self):
 

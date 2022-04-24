@@ -1,14 +1,15 @@
-class FulfilmentMethod:
+import enum
+class FulfilmentMethod(enum.Enum):
     """
     The fulfilment method. Fulfilled by the retailer (FBR) or fulfilled by
-    microservice_edc_pull.com (FBB).
+    microservice_supplier.com (FBB).
     """
 
     FBR = "FBR"
     FBB = "FBB"
 
 
-class TransporterCode:
+class TransporterCode(enum.Enum):
     """
     https://api.bol.com/retailer/public/redoc/v3#tag/Transports
     """
@@ -42,7 +43,7 @@ class TransporterCode:
     UPS = "UPS"
 
 
-class CancellationReasonCode:
+class CancellationReasonCode(enum.Enum):
     OUT_OF_STOCK = "OUT_OF_STOCK"
     REQUESTED_BY_CUSTOMER = "REQUESTED_BY_CUSTOMER"
     BAD_CONDITION = "BAD_CONDITION"
@@ -57,7 +58,7 @@ class CancellationReasonCode:
     OTHER = "OTHER"
 
 
-class DeliveryCode:
+class DeliveryCode(enum.Enum):
     d_24uurs_23 = "24uurs-23"
     d_24uurs_22 = "24uurs-22"
     d_24uurs_21 = "24uurs-21"
@@ -78,9 +79,26 @@ class DeliveryCode:
     d_mijn_leverbelofte = '"MijnLeverbelofte"'
 
 
-class ConditionName:
+class ConditionName(enum.Enum):
     NEW = "NEW"
     AS_NEW = "AS_NEW"
     GOOD = "GOOD"
     REASONABLE = "REASONABLE"
     MODERATE = "MODERATE"
+
+class TimeFrameType(enum.Enum):
+    REGULAR = 'REGULAR'
+    EVENING = 'EVENING'
+    APPOINTMENT = 'APPOINTMENT'
+    SAMEDAY = 'SAMEDAY'
+    SUNDAY = 'SUNDAY'
+
+class DistributionParty(enum.Enum):
+    RETAILER = 'RETAILER'
+    BOL = 'BOL'
+
+class Salutation(enum.Enum):
+    MALE = 'MALE'
+    FEMALE = 'FEMALE'
+    UNKNOWN = 'UNKNOWN'
+

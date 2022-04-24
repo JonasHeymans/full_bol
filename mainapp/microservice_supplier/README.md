@@ -20,8 +20,8 @@
 
 
 ## Database
-- push_discounts_to_db() is also needed so price calculations will be accurate
-- Use push_products_to_db() to push this pickle-file to the db
-- Use push_stock_to_db() to update the stock
-- push_full_prices_to_db() initial setup
-- push_new_prices_to_db() (Manual calculation is wrong)
+- add_discounts() is also needed so price calculations will be accurate
+- Use add_products() to push this pickle-file to the db
+- Use add_stock() to update the stock
+- add_full_prices() initial setup
+- add_new_prices() (Manual calculation is wrong)
