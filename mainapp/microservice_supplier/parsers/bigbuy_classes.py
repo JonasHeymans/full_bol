@@ -2,10 +2,10 @@ from mainapp.microservice_supplier.parsers.base_classes import Product, Variant,
     Brand, Measures, Price, Pic, \
     Category, Property, Bulletpoint, Discount
 
-supplier = 'edc'
+supplier = 'bigbuy'
 
 
-class EdcProduct(Product):
+class BigbuyProduct(Product):
     
     def __init__(self, parent):
         super().__init__(parent, supplier)
@@ -15,7 +15,7 @@ class EdcProduct(Product):
     }
 
 
-class EdcVariant(Variant):
+class BigbuyVariant(Variant):
 
     def __init__(self, parent):
         super().__init__(parent, supplier)
@@ -25,7 +25,7 @@ class EdcVariant(Variant):
     }
 
 
-class EdcBrand(Brand):
+class BigbuyBrand(Brand):
 
     def __init__(self, parent):
         super().__init__(parent, supplier)
@@ -35,7 +35,7 @@ class EdcBrand(Brand):
     }
 
 
-class EdcPrice(Price):
+class BigbuyPrice(Price):
 
     def __init__(self, parent):
         super().__init__(parent, supplier)
@@ -45,7 +45,7 @@ class EdcPrice(Price):
     }
 
 
-class EdcMeasures(Measures):
+class BigbuyMeasures(Measures):
 
     def __init__(self, parent):
         super().__init__(parent, supplier)
@@ -55,7 +55,7 @@ class EdcMeasures(Measures):
     }
 
 
-class EdcPic(Pic):
+class BigbuyPic(Pic):
 
     def __init__(self, parent):
         super().__init__(parent, supplier)
@@ -65,7 +65,7 @@ class EdcPic(Pic):
     }
 
 
-class EdcCategory(Category):
+class BigbuyCategory(Category):
 
     def __init__(self, parent):
         super().__init__(parent, supplier)
@@ -75,7 +75,7 @@ class EdcCategory(Category):
     }
 
 
-class EdcBulletpoint(Bulletpoint):
+class BigbuyBulletpoint(Bulletpoint):
 
     def __init__(self, parent):
         super().__init__(parent, supplier)
@@ -85,7 +85,7 @@ class EdcBulletpoint(Bulletpoint):
     }
 
 
-class EdcProperty(Property):
+class BigbuyProperty(Property):
 
     def __init__(self, parent):
         super().__init__(parent, supplier)
@@ -95,7 +95,7 @@ class EdcProperty(Property):
     }
 
 
-class EdcDiscount(Discount):
+class BigbuyDiscount(Discount):
 
     def __init__(self, parent):
         super().__init__(parent, supplier)

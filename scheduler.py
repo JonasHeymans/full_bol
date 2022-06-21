@@ -74,13 +74,7 @@ def full_product_update():
     con.initial_convert('full')
 
     db = EdcDatabase(connection_type='merge')
-    db.add_products('full')
-    db.add_stock()
-
-    edc.download_discounts()
-    db.add_discounts()
-
-    db.add_new_prices()
+    db.add_to_db()
 
     # TODO: bol-side implementation
 

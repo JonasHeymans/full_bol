@@ -10,7 +10,7 @@ from mainapp.microservice_bol.parsers.bol_classes import Base as BolBase, Order,
     billingDetails
 from mainapp.microservice_both.adapter.adapter import OrderAdapter
 from mainapp.microservice_both.parsers.edc_order import Base as OrderBase, EdcShipment
-from mainapp.microservice_supplier import BASE_PATH, ALL_EDC_CLASSES
+from mainapp.microservice_supplier import BASE_PATH, ALL_EDC_CLASSES, ALL_BIGBUY_CLASSES
 from mainapp.microservice_supplier.adapter.edc_adapter import Adapter
 from mainapp.microservice_supplier.parsers.base_classes import Base as EdcBase, Product, Variant, Price, Brand, \
     Category, Measures, Property, Bulletpoint, Pic, Discount
@@ -62,34 +62,34 @@ class Database:
                         logger.debug(f'Pushed {item} to db')
 
                     except IntegrityError as e:
-                        error_item_location = lst.index(item) - 1
-                        error_item = lst[error_item_location]
-                        logger.debug(f'IntegrityError on {error_item}')
-                        session.rollback()
+                        try:
+                            error_item_location = lst.index(item) - 1
+                            error_item = lst[error_item_location]
+                            logger.debug(f'IntegrityError on {error_item}')
+                            session.rollback()
 
-                        if f'(product_id)=({error_item.product_id}) is not present in table' \
-                                in e.args[0]:
+                            if f'(product_id)=({error_item.product_id}) is not present in table' in e.args[0]:
 
-                            product_item = error_item.extract_product()
+                                product_item = error_item.extract_product()
 
-                            session.merge(product_item)
-                            session.commit()
+                                session.merge(product_item)
+                                session.commit()
 
-                            session.merge(error_item)
+                                session.merge(error_item)
 
-                        elif f'(artnr)=({error_item.artnr}) is not present in table "products".' in e.args[0]:
-                            product_item = error_item.extract_product()
-                            variant_item = error_item.extract_variant()
+                            elif f'(artnr)=({error_item.artnr}) is not present in table "products".' in e.args[0]:
+                                product_item = error_item.extract_product()
+                                variant_item = error_item.extract_variant()
 
-                            session.merge(product_item)
-                            session.commit()
+                                session.merge(product_item)
+                                session.commit()
 
-                            session.merge(variant_item)
-                            session.commit()
+                                session.merge(variant_item)
+                                session.commit()
 
-                            session.merge(error_item)
+                                session.merge(error_item)
 
-                        else:
+                        except Exception as e:
                             logger.warning(f'IntegrityError: {e} \n')
 
         except Exception as e:
@@ -227,6 +227,19 @@ class EdcDatabase(SupplierDatabase):
         filenames = self.filenames if args == () else args
         super().add_to_db(filenames)
 
+class BigbuyDatabase(SupplierDatabase):
+    def __init__(self, connection_type):
+        self.supplier = 'bigbuy'
+        self.supplier_classes = ALL_BIGBUY_CLASSES
+        super().__init__(connection_type,
+                         self.supplier,
+                         self.supplier_classes)
+
+        self.filenames = super().get_all_filenames(self.supplier)
+
+    def add_to_db(self, *args):
+        filenames = self.filenames if args == () else args
+        super().add_to_db(filenames)
 
 class BolDatabase(Database):
     def __init__(self, connection_type):

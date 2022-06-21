@@ -155,3 +155,5 @@ dmypy.json
 /mainapp/microservice_supplier/files/edc/feeds/update_price.csv
 /mainapp/microservice_supplier/files/edc/dict/stock.pkl
 /mainapp/microservice_supplier/files/edc/feeds/stock.xml
+/mainapp/microservice_supplier/files/bigbuy/feeds/full.json
+/mainapp/microservice_supplier/files/bigbuy/dict/full.pkl
