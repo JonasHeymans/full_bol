@@ -32,7 +32,7 @@ class Adapter:
             'Property': 'properties',
             'Bulletpoint': 'bulletpoints'
         }
-        if classname in to_convert.keys():
+        if classname in to_convert.keys() and self.supplier == 'edc':
             conv = Converter(self.supplier)
             file = conv.convert(file, to_convert[classname])
 

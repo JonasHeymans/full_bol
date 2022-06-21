@@ -1,251 +1,161 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <products>
   <product>
-    <id>57219</id>
-    <artnr>069560-111-S</artnr>
-    <title>Tender Love Bralette Set - Purple</title>
-    <description>The Tender Love set includes a bra top and royally embellished thong. A trendy set of soft, stretchy lace.
-The bra top features playful strap details to give it just a little more of an exciting look than regular tops. The shoulder straps are adjustable. The cheeky hipster features the same playful straps and together this makes for a perfect, seductive combination. The lace is stretchy and feels pleasantly sexy on your skin.</description>
-    <casecount>1</casecount>
+    <id>32</id>
+    <artnr>05097280000</artnr>
+    <title>XTension Sleeve transparent</title>
+    <description>Penis sleeve with nubs and veins ? extra long (can be cut for a perfect fit). With solid glans to lengthen the penis. Transparent. Outer length approx. 22 cm, ? 3.8-5 cm. Inner length 18 cm, inner ? 3.7 cm. Material: TPE, phthalate-free according to EU Regulation REACH.</description>
+    <casecount>24</casecount>
     <brand>
-      <id>1627</id>
-      <title>CHRISTINE LE DUC</title>
+      <id>23</id>
+      <title>You2Toys</title>
     </brand>
-    <date>21-03-2022</date>
-    <modifydate>24-03-2022</modifydate>
+    <date>03-09-2015</date>
+    <modifydate>21-06-2022</modifydate>
     <variants>
       <variant>
-        <id>110545</id>
-        <type>S</type>
-        <subartnr>069560-111-S</subartnr>
-        <ean>7061289749618</ean>
+        <id>34990</id>
+        <type></type>
+        <subartnr>05097280000</subartnr>
+        <ean>4024144513727</ean>
         <stock>Y</stock>
         <stockestimate>50</stockestimate>
-        <title>Small</title>
-      </variant>
-      <variant>
-        <id>110548</id>
-        <type>S</type>
-        <subartnr>069560-111-M</subartnr>
-        <ean>7061289150353</ean>
-        <stock>Y</stock>
-        <stockestimate>100</stockestimate>
-        <title>Medium</title>
-      </variant>
-      <variant>
-        <id>110551</id>
-        <type>S</type>
-        <subartnr>069560-111-L</subartnr>
-        <ean>7061288417457</ean>
-        <stock>Y</stock>
-        <stockestimate>50</stockestimate>
-        <title>Large</title>
-      </variant>
-      <variant>
-        <id>110554</id>
-        <type>S</type>
-        <subartnr>069560-111-XL</subartnr>
-        <ean>7061283264933</ean>
-        <stock>Y</stock>
-        <stockestimate>100</stockestimate>
-        <title>XL</title>
       </variant>
     </variants>
     <price>
       <currency>EUR</currency>
-      <b2b>14.00</b2b>
-      <b2c>29.99</b2c>
+      <b2b>12.90</b2b>
+      <b2c>24.99</b2c>
       <vatnl>21.00</vatnl>
       <vatde>19.00</vatde>
       <vatfr>20.00</vatfr>
       <vatuk>21.00</vatuk>
       <discount>Y</discount>
-      <minprice>17.43</minprice>
     </price>
     <categories>
       <category>
         <cat>
-          <id>153</id>
-          <title>Lingerie Women</title>
+          <id>181</id>
+          <title>Toys for Boys</title>
         </cat>
         <cat>
-          <id>189</id>
-          <title>Bra Sets</title>
+          <id>166</id>
+          <title>Penis Extension</title>
         </cat>
       </category>
     </categories>
     <measures>
-      <weight>87</weight>
-      <packing>25x35x5</packing>
+      <length>21.00</length>
+      <mindiameter>5.00</mindiameter>
+      <innerdiameter>3.50</innerdiameter>
+      <outerdiameter>5.00</outerdiameter>
+      <weight>283</weight>
+      <packing>36x19x5</packing>
     </measures>
     <properties>
       <prop>
-        <propid>35</propid>
-        <property>Fit</property>
-        <valueid>186</valueid>
+        <propid>84</propid>
+        <property>Extending penis</property>
+        <valueid>359</valueid>
         <values>
           <value>
-            <id>186</id>
-            <title>Tight-fitting 	</title>
-          </value>
-        </values>
-        <value>Tight-fitting 	</value>
-      </prop>
-      <prop>
-        <propid>143</propid>
-        <property>Clothing sizes</property>
-        <valueid>793</valueid>
-        <values>
-          <value>
-            <id>793</id>
-            <title>X-Large</title>
-          </value>
-          <value>
-            <id>792</id>
-            <title>Large</title>
-          </value>
-          <value>
-            <id>791</id>
-            <title>Medium</title>
-          </value>
-          <value>
-            <id>790</id>
-            <title>Small</title>
-          </value>
-        </values>
-        <value>X-Large</value>
-      </prop>
-      <prop>
-        <propid>86</propid>
-        <property>Thong</property>
-        <valueid>387</valueid>
-        <values>
-          <value>
-            <id>387</id>
-            <title>Inclusive</title>
-          </value>
-        </values>
-        <value>Inclusive</value>
-      </prop>
-      <prop>
-        <propid>104</propid>
-        <property>Production method</property>
-        <valueid>612</valueid>
-        <values>
-          <value>
-            <id>612</id>
-            <title>Woven</title>
-          </value>
-        </values>
-        <value>Woven</value>
-      </prop>
-      <prop>
-        <propid>45</propid>
-        <property>Size Fit</property>
-        <valueid>254</valueid>
-        <values>
-          <value>
-            <id>254</id>
-            <title>Normal</title>
-          </value>
-        </values>
-        <value>Normal</value>
-      </prop>
-      <prop>
-        <propid>54</propid>
-        <property>Total rating</property>
-        <valueid>289</valueid>
-        <values>
-          <value>
-            <id>289</id>
-            <title>5</title>
-          </value>
-        </values>
-        <value>5</value>
-      </prop>
-      <prop>
-        <propid>30</propid>
-        <property>Washing temperature</property>
-        <valueid>172</valueid>
-        <values>
-          <value>
-            <id>172</id>
-            <title>Hand wash </title>
-          </value>
-        </values>
-        <value>Hand wash </value>
-      </prop>
-      <prop>
-        <propid>33</propid>
-        <property>Drycleaning</property>
-        <valueid>182</valueid>
-        <values>
-          <value>
-            <id>182</id>
-            <title>No</title>
-          </value>
-        </values>
-        <value>No</value>
-      </prop>
-      <prop>
-        <propid>36</propid>
-        <property>Pattern</property>
-        <valueid>189</valueid>
-        <values>
-          <value>
-            <id>189</id>
-            <title>Mixed</title>
-          </value>
-        </values>
-        <value>Mixed</value>
-      </prop>
-      <prop>
-        <propid>43</propid>
-        <property>Packing</property>
-        <valueid>237</valueid>
-        <values>
-          <value>
-            <id>237</id>
-            <title>Retail packaging (plastic)</title>
-          </value>
-        </values>
-        <value>Retail packaging (plastic)</value>
-      </prop>
-      <prop>
-        <propid>25</propid>
-        <property>Colour</property>
-        <valueid>206</valueid>
-        <values>
-          <value>
-            <id>206</id>
-            <title>Purple</title>
-          </value>
-        </values>
-        <value>Purple</value>
-      </prop>
-      <prop>
-        <propid>70</propid>
-        <property>Warranty</property>
-        <valueid>326</valueid>
-        <values>
-          <value>
-            <id>326</id>
+            <id>359</id>
             <title>Yes</title>
           </value>
         </values>
         <value>Yes</value>
       </prop>
       <prop>
-        <propid>41</propid>
-        <property>Suitable for</property>
-        <valueid>231</valueid>
+        <propid>83</propid>
+        <property>External structure</property>
+        <valueid>356</valueid>
         <values>
           <value>
-            <id>231</id>
-            <title>Women</title>
+            <id>356</id>
+            <title>Nubs</title>
+          </value>
+          <value>
+            <id>357</id>
+            <title>Ribbed</title>
           </value>
         </values>
-        <value>Women</value>
+        <value>Nubs</value>
+      </prop>
+      <prop>
+        <propid>26</propid>
+        <property>Waterproof</property>
+        <valueid>168</valueid>
+        <values>
+          <value>
+            <id>168</id>
+            <title>Yes</title>
+          </value>
+        </values>
+        <value>Yes</value>
+      </prop>
+      <prop>
+        <propid>54</propid>
+        <property>Total rating</property>
+        <valueid>288</valueid>
+        <values>
+          <value>
+            <id>288</id>
+            <title>4</title>
+          </value>
+        </values>
+        <value>4</value>
+      </prop>
+      <prop>
+        <propid>40</propid>
+        <property>Suitable for penetration</property>
+        <valueid>198</valueid>
+        <values>
+          <value>
+            <id>198</id>
+            <title>Yes</title>
+          </value>
+        </values>
+        <value>Yes</value>
+      </prop>
+      <prop>
+        <propid>128</propid>
+        <property>Suitable for couples</property>
+        <valueid>710</valueid>
+        <values>
+          <value>
+            <id>710</id>
+            <title>Men + Men</title>
+          </value>
+          <value>
+            <id>712</id>
+            <title>Men + Woman</title>
+          </value>
+        </values>
+        <value>Men + Men</value>
+      </prop>
+      <prop>
+        <propid>108</propid>
+        <property>Stimulation</property>
+        <valueid>773</valueid>
+        <values>
+          <value>
+            <id>773</id>
+            <title>Penis stimulation</title>
+          </value>
+        </values>
+        <value>Penis stimulation</value>
+      </prop>
+      <prop>
+        <propid>144</propid>
+        <property>User level</property>
+        <valueid>796</valueid>
+        <values>
+          <value>
+            <id>796</id>
+            <title>More Experienced</title>
+          </value>
+        </values>
+        <value>More Experienced</value>
       </prop>
       <prop>
         <propid>71</propid>
@@ -260,40 +170,52 @@ The bra top features playful strap details to give it just a little more of an e
         <value>Good Warranty Service</value>
       </prop>
       <prop>
-        <propid>31</propid>
-        <property>Bleaching</property>
-        <valueid>178</valueid>
+        <propid>41</propid>
+        <property>Suitable for</property>
+        <valueid>230</valueid>
         <values>
           <value>
-            <id>178</id>
-            <title>No</title>
+            <id>230</id>
+            <title>Men</title>
           </value>
         </values>
-        <value>No</value>
+        <value>Men</value>
       </prop>
       <prop>
-        <propid>32</propid>
-        <property>Ironing</property>
-        <valueid>179</valueid>
+        <propid>25</propid>
+        <property>Colour</property>
+        <valueid>215</valueid>
         <values>
           <value>
-            <id>179</id>
-            <title>No</title>
+            <id>215</id>
+            <title>Transparent</title>
           </value>
         </values>
-        <value>No</value>
+        <value>Transparent</value>
       </prop>
       <prop>
-        <propid>34</propid>
-        <property>Clothes dryer</property>
-        <valueid>183</valueid>
+        <propid>70</propid>
+        <property>Warranty</property>
+        <valueid>326</valueid>
         <values>
           <value>
-            <id>183</id>
-            <title>No</title>
+            <id>326</id>
+            <title>Yes</title>
           </value>
         </values>
-        <value>No</value>
+        <value>Yes</value>
+      </prop>
+      <prop>
+        <propid>43</propid>
+        <property>Packing</property>
+        <valueid>243</valueid>
+        <values>
+          <value>
+            <id>243</id>
+            <title>Industrial packaging (Blister)</title>
+          </value>
+        </values>
+        <value>Industrial packaging (Blister)</value>
       </prop>
       <prop>
         <propid>63</propid>
@@ -307,35 +229,86 @@ The bra top features playful strap details to give it just a little more of an e
         </values>
         <value>Yes</value>
       </prop>
+      <prop>
+        <propid>137</propid>
+        <property>Inner diameter</property>
+        <values>
+          <value>
+            <unit>mm</unit>
+            <magnitude>35</magnitude>
+          </value>
+        </values>
+        <value>35</value>
+      </prop>
+      <prop>
+        <propid>132</propid>
+        <property>Length</property>
+        <values>
+          <value>
+            <unit>mm</unit>
+            <magnitude>210</magnitude>
+          </value>
+        </values>
+        <value>210</value>
+      </prop>
+      <prop>
+        <propid>138</propid>
+        <property>Outer diameter</property>
+        <values>
+          <value>
+            <unit>mm</unit>
+            <magnitude>50</magnitude>
+          </value>
+        </values>
+        <value>50</value>
+      </prop>
+      <prop>
+        <propid>136</propid>
+        <property>Minimum diameter</property>
+        <values>
+          <value>
+            <unit>mm</unit>
+            <magnitude>50</magnitude>
+          </value>
+        </values>
+        <value>50</value>
+      </prop>
     </properties>
-    <material>10% elastane, 90% Polyamide</material>
+    <material>TPE</material>
     <popularity>1</popularity>
     <pics>
-      <pic>069560-111-S.jpg</pic>
-      <pic>069560-111-S_2.jpg</pic>
+      <pic>https://cdn.edc.nl/500/05097280000.jpg</pic>
+      <pic>https://cdn.edc.nl/500/05097280000_2.jpg</pic>
+      <pic>https://cdn.edc.nl/500/05097280000_3.jpg</pic>
+      <pic>https://cdn.edc.nl/500/05097280000_4.jpg</pic>
     </pics>
-    <country>PL</country>
-    <bulletpoints></bulletpoints>
+    <country>CN</country>
+    <bulletpoints>
+      <bp>Transparent model </bp>
+      <bp>Stimulating structure </bp>
+      <bp>Adaptable model</bp>
+    </bulletpoints>
     <restrictions>
       <germany>N</germany>
       <platform>N</platform>
     </restrictions>
+    <hscode>90191090</hscode>
     <battery>
       <required>N</required>
     </battery>
     <new_categories>
       <category>
         <cats>
-          <id>32863</id>
-          <title>Sexy Lingerie &amp; Clothing</title>
+          <id>32857</id>
+          <title>Sex Toys</title>
         </cats>
         <cats>
-          <id>32884</id>
-          <title>Women's Lingerie</title>
+          <id>32959</id>
+          <title>Penis Pumps &amp; Penis Sleeves</title>
         </cats>
         <cats>
-          <id>32152</id>
-          <title>Bra Sets</title>
+          <id>32392</id>
+          <title>Penis Sleeves</title>
         </cats>
       </category>
     </new_categories>

@@ -55,21 +55,20 @@ class Product(Base):
         self.material = parent.pop('material', None)
         self.popularity = parent.pop('popularity', None)
         self.country = parent.pop('country', None)
-        self.restrictions_platform = parent['restrictions'].pop('platform', None)
-        self.battery_required = False if not isinstance(parent['battery'], list) else True
+        # self.restrictions_platform = parent['restrictions'].pop('platform', None)
+        # self.battery_required = False if not isinstance(parent['battery'], list) else True
         self.battery_id = None if not self.battery_required else parent['battery'][0].pop('id', None)
         self.battery_included = None if not self.battery_required else (
             True if parent['battery'][0].pop('included', None) == 'Y' else False)
-        self.battery_quantity = None if self.battery_required == False else parent['battery'][0].pop('quantity', None)
+        # self.battery_quantity = None if self.battery_required == False else parent['battery'][0].pop('quantity', None)
         self.casecount = parent.pop('casecount', None)
-        self.restrictions_germany = parent['restrictions'].pop('germany', None)
+        # self.restrictions_germany = parent['restrictions'].pop('germany', None)
         self.update_date = dt.now()
 
     def __repr__(self):
         return f"Product object with product_id '{self.product_id}', artnr '{self.artnr}', title '{self.title}', enz"
 
     supplier = Column(String(50))
-
 
     # TODO further split up the percentages in materials (via regex?)
     product_id = Column(Integer, primary_key=True)
@@ -158,13 +157,12 @@ class Variant(Base):
 
     def extract_product(self):
         # todo: am I doing something dangerous here by saying that artnr == subartnr?
-        p = Product({'id': self.product_id,
+        p = Product(parent ={'id': self.product_id,
                      'artnr': self.subartnr,
                      'restrictions': {},
-                     'battery': {}})
+                     'battery': {}},
+                    supplier=self.supplier)
         return p
-
-
 
 
 class Brand(Base):
@@ -177,13 +175,11 @@ class Brand(Base):
         self.brand_id = parent['brand'].pop('id', None)
         self.title = parent['brand'].pop('title', None)
         self.update_date = dt.now()
-        
 
     def __repr__(self):
         return f"Brand object with product_id '{self.product_id}', brand_id '{self.brand_id}' and title '{self.title}'"
 
     supplier = Column(String(50))
-
 
     brand_id = Column(Integer, primary_key=True)
     product_id = Column(Integer)
@@ -216,7 +212,6 @@ class Price(Base):
         return f"Price object with artnr '{self.artnr}', currency '{self.currency}', b2b '{self.b2b}', enz"
 
     supplier = Column(String(50))
-
 
     product_id = Column(Integer)
     subartnr = Column(String(100))
@@ -308,15 +303,17 @@ class Price(Base):
                 logger.debug(f'Error on getting discount for product with brand_id {brand_id}')
 
     def extract_product(self):
-        p = Product({'id': self.product_id,
+        p = Product(parent = {'id': self.product_id,
                      'artnr': self.subartnr,
                      'restrictions': {},
-                     'battery': {}})
+                     'battery': {}},
+                    supplier=self.supplier)
         return p
 
     def extract_variant(self):
         v = Variant({'product_id': self.product_id,
-                     'subartnr': self.subartnr})
+                     'subartnr': self.subartnr},
+                    supplier=self.supplier)
         return v
 
 
@@ -340,7 +337,6 @@ class Measures(Base):
                f"insertiondepth '{self.insertiondepth}', length '{self.length}', enz"
 
     supplier = Column(String(50))
-
 
     product_id = Column(Integer, ForeignKey(f'{schema_name}.products.product_id'), primary_key=True)
     maxdiameter = Column(Float)
@@ -375,7 +371,6 @@ class Pic(Base):
 
     supplier = Column(String(50))
 
-
     pic = Column(String(255), primary_key=True)
     artnr = Column(String(255))
     update_date = Column(DateTime)
@@ -395,7 +390,6 @@ class Category(Base):
         self.update_date = dt.now()
 
     supplier = Column(String(50))
-
 
     product_id = Column(Integer)
     category_id = Column(Integer, primary_key=True)
@@ -425,7 +419,6 @@ class Bulletpoint(Base):
         return f"Bulletpoint object with product_id '{self.product_id}' and bulletpoint '{self.bp}'"
 
     supplier = Column(String(50))
-
 
     bp = Column(String(255), primary_key=True)
     product_id = Column(Integer)
@@ -468,7 +461,6 @@ class Property(Base):
 
     supplier = Column(String(50))
 
-
     propid = Column(Integer, primary_key=True)
     product_id = Column(Integer)
     property = Column(String(255))
@@ -504,7 +496,6 @@ class Discount(Base):
                f"brandname '{self.brandname}' and discount '{self.discount}'"
 
     supplier = Column(String(50))
-
 
     brand_id = Column(Integer, primary_key=True)
     brandname = Column(String(255))

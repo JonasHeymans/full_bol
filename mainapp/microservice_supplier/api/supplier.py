@@ -1,4 +1,5 @@
 import logging
+import time
 
 import requests
 from decouple import config
@@ -9,12 +10,21 @@ logger = logging.getLogger('microservice_supplier.edc')
 
 
 class BaseClient:
-    def __init__(self, supplier):
+    def __init__(self, supplier, api_key=None):
         self.supplier = supplier
+        self.api_key = api_key
+
 
     def send_request(self, name, url):
         logger.info(f'Sending request for {name}')
-        return requests.get(url).text
+
+        if self.supplier == 'bigbuy':
+            request = requests.get(url, headers={"Authorization": f"Bearer {self.api_key}"})
+
+        elif self.supplier == 'edc':
+            request = requests.get(url)
+
+        return request.text, request.status_code
 
     def save_to_feeds(self, file, filename, filetype='xml'):
         logger.info(f'Starting saving of {filetype}')
@@ -25,11 +35,19 @@ class BaseClient:
     # Please note, this can take a few minutes (around 5 I would say). Maybe async this later?
     def download(self, downloads):
         for name, url, filetype, output_type in downloads:
-            response = self.send_request(name, url)
-            self.save_to_feeds(response, name, filetype=filetype)
+            response, status_code = self.send_request(name, url)
+
+            if status_code == 200:
+                self.save_to_feeds(response, name, filetype=filetype)
+            elif status_code == 429:
+                logger.info("Sleeping because of timeout")
+                time.sleep(300)
+                response, status_code = self.send_request(name, url)
+                self.save_to_feeds(response, name, filetype=filetype)
+            else:
+                logger.warning(f'Status code {status_code}')
 
 class EdcClient(BaseClient):
-
     def __init__(self):
         self.supplier = 'edc'
         self.api_key = config('EDC_API_KEY')
@@ -60,5 +78,13 @@ class BigbuyClient(BaseClient):
     def __init__(self):
         self.supplier = 'bigbuy'
         self.api_key = config('BB_API_KEY')
-        self.url = f'{BB_BASE_URL}/rest/catalog/productsstockavailable.json?isoCode=NL'
-        super().__init__(self.supplier)
+        self.downloads = {
+            'full': [f'{BB_BASE_URL}rest/catalog/products.json?isoCode=NL',
+                     'json', 'raw']
+            }
+        super().__init__(self.supplier, self.api_key)
+
+    def download(self, *args):
+        args = self.downloads.keys() if args == () else args
+        downloads = [[arg] + self.downloads[arg] for arg in args]
+        super().download(downloads)
