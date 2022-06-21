@@ -2,8 +2,11 @@ import logging
 import os
 import pickle
 import time
+import json
+from collections import OrderedDict
 from datetime import datetime
 from typing import List
+import pandas as pd
 
 import xmltodict
 
@@ -13,16 +16,16 @@ logger = logging.getLogger('microservice_supplier.converter')
 
 
 class Converter:
-    def __init__(self, supplier):
+    def __init__(self, supplier, replacement_dict=None):
         self.supplier = supplier
+        self.replacement_dict = replacement_dict
 
     def get_all_feeds_filenames(self):
         path = f'{BASE_PATH}/files/{self.supplier}/feeds/'
-        return [os.path.splitext(filename)[0] for filename in os.listdir(path)
-                if os.path.splitext(filename)[1] == '.xml']
+        return [filename for filename in os.listdir(path)]
 
-    def __convert_xml_to_list(self, xml_file_name, xml_attribs=True) -> List:
-        with open(f"{BASE_PATH}/files/{self.supplier}/feeds/{xml_file_name}.xml", "rb") as f:
+    def __convert_xml_to_list(self, file_name, xml_attribs=True) -> List:
+        with open(f"{BASE_PATH}/files/{self.supplier}/feeds/{file_name}.xml", "rb") as f:
             logger.debug('Starting conversion from XML to dict')
             start = time.time()
             my_dictionary = xmltodict.parse(f, xml_attribs=xml_attribs)
@@ -34,6 +37,14 @@ class Converter:
             else:
                 with open(f"{BASE_PATH}/files/various/empty.xml", "rb") as f:
                     return xmltodict.parse(f, xml_attribs=xml_attribs)
+
+    def __convert_json_to_list(self, file_name) -> List:
+        path = f"{BASE_PATH}/files/{self.supplier}/feeds/{file_name}.json"
+        logger.debug('Starting conversion from Json to dict')
+        start = time.time()
+        my_dictionary = json.load(open(path), object_pairs_hook=OrderedDict)
+        logger.debug(f'Conversion from JSON to dict Successful. Took {(time.time() - start) / 60:.2f} minutes')
+        return my_dictionary
 
     '''Ok, this is like quite dirty... But I needed to do it because for example there can be 1 or 
     more variants for each product, and we don't know beforehand if- and how many variants 
@@ -317,21 +328,53 @@ class Converter:
 
     def initial_convert(self, filenames):
         for filename in filenames:
+            name, extention = filename.split('.')
             # kinda dirty, might want to clean this up later
-            if filename == 'stock':
-                with open(f"{BASE_PATH}/files/{self.supplier}/feeds/{filename}.xml", "rb") as f:
+            if extention == 'csv':
+                continue
+            elif name == 'stock':
+                with open(f"{BASE_PATH}/files/{self.supplier}/feeds/{name}.xml", "rb") as f:
                     file = xmltodict.parse(f, xml_attribs=True)
-            else:
-                file = self.__convert_xml_to_list(filename)
+            elif extention == 'xml':
+                file = self.__convert_xml_to_list(name)
+                file = self.__convert_date_format(file)
+            elif extention == 'json':
+                file = self.__convert_json_to_list(name)
                 file = self.__convert_date_format(file)
 
-            self.__save_pickle(file, f"{BASE_PATH}/files/{self.supplier}/dict/{filename}.pkl")
+            file = self.uniformize_names(file, name)
+
+            self.__save_pickle(file, f"{BASE_PATH}/files/{self.supplier}/dict/{name}.pkl")
+
+    def uniformize_names(self, file, name):
+
+        if self.replacement_dict:
+            to_replace = self.replacement_dict[name]
+            df = pd.DataFrame(file)
+            df = df.rename(index=str, columns=to_replace)
+            file = df.to_dict('records')
+        return file
 
 
 class EdcConverter(Converter):
     def __init__(self):
         self.supplier = 'edc'
-        super().__init__(self.supplier)
+        self.replacement_dict = {}
+        super().__init__(self.supplier,
+                         self.replacement_dict)
+        self.filenames = super().get_all_feeds_filenames()
+
+    def initial_convert(self, *args):
+        args = self.filenames if args == () else args
+        super().initial_convert(args)
+
+
+class BigbuyConverter(Converter):
+    def __init__(self):
+        self.supplier = 'bigbuy'
+        self.replacement_dict = {'full': {'sku': 'artnr'}}
+        super().__init__(self.supplier,
+                         self.replacement_dict)
         self.filenames = super().get_all_feeds_filenames()
 
     def initial_convert(self, *args):
