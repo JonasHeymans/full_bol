@@ -372,7 +372,7 @@ class EdcConverter(Converter):
 class BigbuyConverter(Converter):
     def __init__(self):
         self.supplier = 'bigbuy'
-        self.replacement_dict = {'full': {'sku': 'artnr'}}
+        self.replacement_dict = {'products': {'sku': 'artnr'}}
         super().__init__(self.supplier,
                          self.replacement_dict)
         self.filenames = super().get_all_feeds_filenames()

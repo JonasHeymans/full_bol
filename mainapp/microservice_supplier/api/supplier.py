@@ -14,12 +14,13 @@ class BaseClient:
         self.supplier = supplier
         self.api_key = api_key
 
-
-    def send_request(self, name, url):
+    def send_request(self, name, url, params):
         logger.info(f'Sending request for {name}')
 
         if self.supplier == 'bigbuy':
-            request = requests.get(url, headers={"Authorization": f"Bearer {self.api_key}"})
+            request = requests.get(url,
+                                   headers={"Authorization": f"Bearer {self.api_key}"},
+                                   params=params)
 
         elif self.supplier == 'edc':
             request = requests.get(url)
@@ -34,18 +35,24 @@ class BaseClient:
 
     # Please note, this can take a few minutes (around 5 I would say). Maybe async this later?
     def download(self, downloads):
-        for name, url, filetype, output_type in downloads:
-            response, status_code = self.send_request(name, url)
+        for row in downloads:
+            name = row[0]
+            url = row[1]
+            filetype = row[2]
+            params = row[3] if len(row) > 3 else None
+
+            response, status_code = self.send_request(name, url, params=params)
 
             if status_code == 200:
                 self.save_to_feeds(response, name, filetype=filetype)
             elif status_code == 429:
                 logger.info("Sleeping because of timeout")
                 time.sleep(300)
-                response, status_code = self.send_request(name, url)
+                response, status_code = self.send_request(name, url, params=params)
                 self.save_to_feeds(response, name, filetype=filetype)
             else:
                 logger.warning(f'Status code {status_code}')
+
 
 class EdcClient(BaseClient):
     def __init__(self):
@@ -53,18 +60,18 @@ class EdcClient(BaseClient):
         self.api_key = config('EDC_API_KEY')
         self.downloads = {
             'full': [f'{EDC_BASE_URL}b2b_feed.php?key={self.api_key}&sort=xml&type=xml&lang=en&version=2015',
-                     'xml', 'raw'],
+                     'xml'],
             'new': [f'{EDC_BASE_URL}b2b_feed.php?key={self.api_key}&sort=xml&type=xml&lang=en&version=2015&new=1',
-                    'xml', 'raw'],
+                    'xml'],
             'discounts': [f'https://www.erotischegroothandel.nl/download/discountoverview.csv?apikey={self.api_key}',
-                          'csv', 'raw'],
+                          'csv'],
             'stock': [f'{EDC_BASE_URL}xml/eg_xml_feed_stock.xml',
-                      'xml', 'text'],
+                      'xml'],
             'full_price': [f'https://www.erotischegroothandel.nl/download/priceoverview.csv?apikey={self.api_key}',
-                           'csv', 'text'],
+                           'csv'],
             'update_price': [f'https://www.erotischegroothandel.nl/download/pricechange.csv?apikey={self.api_key}',
-                             'csv', 'text']
-            }
+                             'csv']
+        }
 
         super().__init__(self.supplier)
 
@@ -79,9 +86,11 @@ class BigbuyClient(BaseClient):
         self.supplier = 'bigbuy'
         self.api_key = config('BB_API_KEY')
         self.downloads = {
-            'full': [f'{BB_BASE_URL}rest/catalog/products.json?isoCode=NL',
-                     'json', 'raw']
-            }
+            'products': [f'{BB_BASE_URL}rest/catalog/products.json?isoCode=NL',
+                         'json',
+                         {'pageSize':10000,
+                         'page': 0}]
+        }
         super().__init__(self.supplier, self.api_key)
 
     def download(self, *args):
