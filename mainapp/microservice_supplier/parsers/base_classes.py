@@ -55,8 +55,8 @@ class Product(Base):
         self.material = parent.pop('material', None)
         self.popularity = parent.pop('popularity', None)
         self.country = parent.pop('country', None)
-        # self.restrictions_platform = parent['restrictions'].pop('platform', None)
-        # self.battery_required = False if not isinstance(parent['battery'], list) else True
+        self.restrictions_platform = parent['restrictions'].pop('platform', None)
+        self.battery_required = False if not isinstance(parent['battery'], list) else True
         self.battery_id = None if not self.battery_required else parent['battery'][0].pop('id', None)
         self.battery_included = None if not self.battery_required else (
             True if parent['battery'][0].pop('included', None) == 'Y' else False)
@@ -72,21 +72,21 @@ class Product(Base):
 
     # TODO further split up the percentages in materials (via regex?)
     product_id = Column(Integer, primary_key=True)
-    material = Column(String(255))
-    casecount = Column(Integer)
-    restrictions_germany = Column(String(255))
+    # material = Column(String(255))
+    # casecount = Column(Integer)
+    # restrictions_germany = Column(String(255))
     artnr = Column(String(255), unique=True)
     title = Column(String(255))
-    description = Column(TEXT)
-    date = Column(Date)
-    modifydate = Column(Date)
-    popularity = Column(Integer)
-    country = Column(String(255))
-    restrictions_platform = Column(String(255))
-    battery_required = Column(Boolean)
-    battery_id = Column(Integer)
-    battery_included = Column(Boolean)
-    battery_quantity = Column(Integer)
+    # description = Column(TEXT)
+    # date = Column(Date)
+    # modifydate = Column(Date)
+    # popularity = Column(Integer)
+    # country = Column(String(255))
+    # restrictions_platform = Column(String(255))
+    # battery_required = Column(Boolean)
+    # battery_id = Column(Integer)
+    # battery_included = Column(Boolean)
+    # battery_quantity = Column(Integer)
     update_date = Column(DateTime)
 
     measures = relationship("Measures", uselist=False, back_populates="products")
@@ -132,15 +132,15 @@ class Variant(Base):
     supplier = Column(String(50))
 
     variant_id = Column(Integer)
-    type = Column(String(255))
+    # type = Column(String(255))
     subartnr = Column(String(255), primary_key=True)
     ean = Column(BIGINT)
-    stock = Column(String(255))
+    # stock = Column(String(255))
     stockestimate = Column(Integer)
     weeknr = Column(Integer)
-    nova = Column(TEXT)  # todo, check which is the correct filetype
-    title = Column(String(255))
-    remaining = Column(CHAR)
+    # nova = Column(TEXT)  # todo, check which is the correct filetype
+    # title = Column(String(255))
+    # remaining = Column(CHAR)
     remaining_quantity = Column(Integer)
     update_date_stock = Column(DateTime)
     update_date = Column(DateTime)
@@ -209,7 +209,7 @@ class Price(Base):
         self.our_price = self.__calculate_sellprice(self.buy_price)
 
     def __repr__(self):
-        return f"Price object with artnr '{self.artnr}', currency '{self.currency}', b2b '{self.b2b}', enz"
+        return f"Price object with artnr '{self.artnr}', b2b '{self.b2b}', enz"
 
     supplier = Column(String(50))
 
@@ -217,17 +217,17 @@ class Price(Base):
     subartnr = Column(String(100))
     update_date = Column(DateTime)
     init_date = Column(DateTime)
-    currency = Column(String(20))
+    # currency = Column(String(20))
     b2b = Column(Float)
     b2c = Column(Float)
-    vatnl = Column(Float)
-    vatde = Column(Float)
-    vatfr = Column(Float)
-    vatuk = Column(Float)
-    discount = Column(CHAR)
-    discount_percentage = Column(Integer)
+    # vatnl = Column(Float)
+    # vatde = Column(Float)
+    # vatfr = Column(Float)
+    # vatuk = Column(Float)
+    # discount = Column(CHAR)
+    # discount_percentage = Column(Integer)
     brand_id = Column(Integer)
-    buy_price = Column(Float)
+    # buy_price = Column(Float)
     our_price = Column(Float)
     b2bsale = Column(Float)
 

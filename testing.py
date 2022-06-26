@@ -8,17 +8,24 @@ log = Logger().get_commandline_logger('info')
 
 # todo: enum for 'connection_type': merge, update or fill.
 
-
+#
 # bibu = EdcClient()
 # bibu.download()
 #
 # con = EdcConverter()
 # con.initial_convert()
 
-db = EdcDatabase(connection_type='merge')
+# db = EdcDatabase(connection_type='merge')
+# db.add_to_db()
+
+bibu = BigbuyClient()
+bibu.download()
+
+con = BigbuyConverter()
+con.initial_convert()
+
+db = BigbuyDatabase(connection_type='merge')
 db.add_to_db()
-
-
 
 
 
