@@ -132,30 +132,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/mainapp/microservice_supplier/files/edc/dict/full.pkl
-/mainapp/microservice_supplier/files/edc/dict/stock.pkl
-/mainapp/microservice_supplier/files/edc/dict/new.pkl
 
-/mainapp/microservice_supplier/files/edc/feeds/discounts.csv
-/mainapp/microservice_supplier/files/edc/feeds/full_price.csv
-/mainapp/microservice_supplier/files/edc/feeds/stock.xml
-/mainapp/microservice_supplier/files/edc/feeds/full.xml
-/mainapp/microservice_supplier/files/edc/feeds/new.xml
-/mainapp/microservice_supplier/files/edc/feeds/update_price.csv
 
 /mainapp/microservice_supplier/documentation/manual_b2b_feeds_2016.pdf
-
-/mainapp/microservice_supplier/files/edc/feeds/discounts.csv
-/mainapp/microservice_supplier/files/edc/dict/full.pkl
-/mainapp/microservice_supplier/files/edc/feeds/full.xml
-/mainapp/microservice_supplier/documentation/manual_b2b_feeds_2016.pdf
-/mainapp/microservice_supplier/files/edc/dict/new.pkl
-/mainapp/microservice_supplier/files/edc/feeds/new.xml
-/mainapp/microservice_supplier/files/edc/feeds/full_price.csv
-/mainapp/microservice_supplier/files/edc/feeds/update_price.csv
-/mainapp/microservice_supplier/files/edc/dict/stock.pkl
-/mainapp/microservice_supplier/files/edc/feeds/stock.xml
-/mainapp/microservice_supplier/files/bigbuy/feeds/full.json
-/mainapp/microservice_supplier/files/bigbuy/cleaned/full.pkl
-/tmp/tmp/*
 /tmp/tmp/
+/mainapp/microservice_supplier/files/
