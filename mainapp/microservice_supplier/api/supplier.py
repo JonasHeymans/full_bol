@@ -1,6 +1,6 @@
 import logging
 import time
-
+import json
 import requests
 from decouple import config
 
@@ -33,6 +33,35 @@ class BaseClient:
             f.write(file)
             logger.info(f"Successfully saved {filename}.{filetype}")
 
+    def merge_json(self, json1, json2):
+        if json1:
+            lstA = json.loads(json1)
+            lstB = json.loads(json2)
+            merged_lst = lstA + lstB
+            return json.dumps(merged_lst)
+        else:
+            return json2
+
+    def get_file(self, name, url, params, response=''):
+        if params is None:
+            response, status_code = self.send_request(name, url, params=params)
+
+        elif 'page' in params:
+            response = response if response else ''
+            status_code = 200
+            while status_code == 200:
+                partial_response, status_code = self.send_request(name, url, params=params)
+                if status_code == 200:
+                    params['page'] += 1
+                    response = self.merge_json(response, partial_response)
+                    logger.info(f'Got {name} page {params["page"]}')
+                elif status_code == 404:
+                    status_code = 200
+                    response = str(response)
+                    break
+
+        return response, status_code, params
+
     # Please note, this can take a few minutes (around 5 I would say). Maybe async this later?
     def download(self, downloads):
         for row in downloads:
@@ -41,14 +70,14 @@ class BaseClient:
             filetype = row[2]
             params = row[3] if len(row) > 3 else None
 
-            response, status_code = self.send_request(name, url, params=params)
+            response, status_code, params = self.get_file(name, url, params)
 
             if status_code == 200:
                 self.save_to_feeds(response, name, filetype=filetype)
             elif status_code == 429:
                 logger.info("Sleeping because of timeout")
-                time.sleep(300)
-                response, status_code = self.send_request(name, url, params=params)
+                time.sleep(60*61)
+                response, status_code, params = self.get_file(name, url, params, response)
                 self.save_to_feeds(response, name, filetype=filetype)
             else:
                 logger.warning(f'Status code {status_code}')
@@ -88,8 +117,30 @@ class BigbuyClient(BaseClient):
         self.downloads = {
             'products': [f'{BB_BASE_URL}rest/catalog/products.json?isoCode=NL',
                          'json',
-                         {'pageSize':10000,
-                         'page': 0}]
+                         {'pageSize': 10000,
+                          'page': 0}],
+            'variants': [f'{BB_BASE_URL}rest/catalog/productsvariations.json?isoCode=NL',
+                         'json',
+                         {'pageSize': 10000,
+                          'page': 0}],
+            'productdescriptions': [f'{BB_BASE_URL}rest/catalog/productsinformation.json?isoCode=NL',
+                                    'json',
+                                    None],
+            'variations': [f'{BB_BASE_URL}rest/catalog/variations.json?isoCode=NL',
+                           'json',
+                           None],
+            'attributes': [f'{BB_BASE_URL}rest/catalog/attributes.json?isoCode=NL',
+                           'json',
+                           None],
+            'attributegroups': [f'{BB_BASE_URL}rest/catalog/attributegroups.json?isoCode=NL',
+                                'json',
+                                None],
+            'stock': [f'{BB_BASE_URL}rest/catalog/productsvariationsstock.json?isoCode=NL',
+                      'json',
+                      None],
+            'categories': [f'{BB_BASE_URL}rest/catalog/categories.json?isoCode=nl', 'json', None],
+
+
         }
         super().__init__(self.supplier, self.api_key)
 
