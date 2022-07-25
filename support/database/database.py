@@ -11,9 +11,8 @@ from mainapp.microservice_bol.parsers.bol_classes import Base as BolBase, Order,
 from mainapp.microservice_both.adapter.adapter import OrderAdapter
 from mainapp.microservice_both.parsers.edc_order import Base as OrderBase, EdcShipment
 from mainapp.microservice_supplier import BASE_PATH, ALL_EDC_CLASSES, ALL_BIGBUY_CLASSES
-from mainapp.microservice_supplier.adapter.edc_adapter import Adapter
-from mainapp.microservice_supplier.parsers.base_classes import Base as EdcBase, Product, Variant, Price, Brand, \
-    Category, Measures, Property, Bulletpoint, Pic, Discount
+from mainapp.microservice_supplier.adapter.adapter import Adapter
+from mainapp.microservice_supplier.parsers.base_classes import Base as EdcBase, Product, Variant
 from support.database.database_connection import DatabaseSession
 
 logger = logging.getLogger('microservice_supplier.database')
@@ -70,12 +69,15 @@ class Database:
 
                             if f'(product_id)=({error_item.product_id}) is not present in table' in e.args[0]:
 
-                                product_item = error_item.extract_product()
+                                product_item = Product(parent={'id': error_item.product_id,
+                                                               'name': 'Not found'},
+                                                       supplier=error_item.supplier)
 
                                 session.merge(product_item)
                                 session.commit()
 
                                 session.merge(error_item)
+
 
                             elif f'(artnr)=({error_item.artnr}) is not present in table "products".' in e.args[0]:
                                 product_item = error_item.extract_product()
@@ -100,16 +102,8 @@ class Database:
         starttime = time.time()
 
         update_targets = {'product': [Product, 'product_id'],
-                          'variant': [Variant, 'variant_id'],
-                          'brand': [Brand, 'brand_id'],
-                          'category': [Category, 'category_id'],
-                          'measures': [Measures, 'product_id'],
-                          'property': [Property, 'propid'],
-                          'bulletpoint': [Bulletpoint, 'bp'],
-                          'pic': [Pic, 'pic'],
+                          'variant': [Variant, 'id'],
                           'stock': [Variant, 'variant_id'],
-                          'price': [Price, 'artnr'],
-                          'discount': [Discount, 'brand_id'],
                           'order': [Order, 'orderId'],
                           'shipment': [Shipment, 'shipmentId'],
                           'shipmentdetails': [shipmentDetails, 'orderId'],
@@ -135,59 +129,26 @@ class SupplierDatabase(Database):
         self.supplier = supplier
         self.supplier_classes = supplier_classes
 
-    def get_all_filenames(self, supplier):
-        SORT_ORDER = ["full", "new", "stock", "discounts", "full_price", "update_price"]
-
-        path = f'{BASE_PATH}/files/{self.supplier}/feeds/'
+    def get_all_filenames(self):
+        SORT_ORDER = ["products", "variants"]
+        path = f'{BASE_PATH}/files/{self.supplier}/cleaned/'
         filenames = [os.path.splitext(filename)[0] for filename in os.listdir(path)]
 
         return [x for x in SORT_ORDER if x in filenames]
 
-    def __add_products(self, filename, *args):
-        logger.debug("Starting pushing products to db")
-        full_starttime = time.time()
-
-        # elegant way of saying: "if insert_in_db is not given any arguments of which classes to push,
-        # then just push everything to the db"
-        args = self.supplier_classes if args == () else args
-        logger.debug(f"Pushing {args}")
-
-        for arg in args:
-            adapter = Adapter(self.supplier, self.supplier_classes)
-            file = adapter.get_products(classname=arg, filename=filename)
-
-            logger.debug(f'Starting on {arg}')
-
-            self.insert_in_db(file, update_target=arg.lower())
-
-        logger.info(f'Successfully added {args} to Database in {(time.time() - full_starttime) / 60 :.2f} minutes!')
-
-    def __add_full_products(self):
-        # TODO: Add functionality so that we do not only add product, variant and price but that the user can choose
-        #  what they want to add
-        self.__add_products('full', 'Product', 'Variant', "Price")
-
-    def __add_new_products(self):
-        self.__add_products('new', 'Product', 'Variant', "Price")
+    def __add_products(self):
+        adapter = Adapter(self.supplier, self.supplier_classes)
+        file = adapter.get_products()
+        self.insert_in_db(file, update_target='product')
 
     def __add_stock(self):
         adapter = Adapter(self.supplier, self.supplier_classes)
         file = adapter.get_stock()
         self.insert_in_db(file, update_target='stock')
 
-    def __add_discounts(self):
+    def __add_prices(self):
         adapter = Adapter(self.supplier, self.supplier_classes)
-        file = adapter.get_discounts()
-        self.insert_in_db(file, update_target='discount')
-
-    def __add_full_prices(self):
-        adapter = Adapter(self.supplier, self.supplier_classes)
-        file = adapter.setup_prices()
-        self.insert_in_db(file, update_target='price')
-
-    def __add_new_prices(self):
-        adapter = Adapter(self.supplier, self.supplier_classes)
-        file = adapter.update_prices()
+        file = adapter.get_prices()
         self.insert_in_db(file, update_target='price')
 
     def __add_shipment(self, file):
@@ -195,16 +156,17 @@ class SupplierDatabase(Database):
         file = oap.setup_shipment(file)
         self.insert_in_db(file, update_target='edcshipment')
 
+    def __add_variants(self):
+        adapter = Adapter(self.supplier, self.supplier_classes)
+        file = adapter.get_variants()
+        self.insert_in_db(file, update_target='variant')
+
     def add_to_db(self, filenames):
-
         add_methods = {
-            'full': self.__add_full_products,
-            'new': self.__add_new_products,
+            'products': self.__add_products,
             'stock': self.__add_stock,
-            'discounts': self.__add_discounts,
-            'full_price': self.__add_full_prices,
-            'update_price': self.__add_new_prices
-
+            'price': self.__add_prices,
+            'variants': self.__add_variants
         }
 
         for filename in filenames:
@@ -221,11 +183,12 @@ class EdcDatabase(SupplierDatabase):
                          self.supplier,
                          self.supplier_classes)
 
-        self.filenames = super().get_all_filenames(self.supplier)
+        self.filenames = super().get_all_filenames()
 
     def add_to_db(self, *args):
         filenames = self.filenames if args == () else args
         super().add_to_db(filenames)
+
 
 class BigbuyDatabase(SupplierDatabase):
     def __init__(self, connection_type):
@@ -235,11 +198,12 @@ class BigbuyDatabase(SupplierDatabase):
                          self.supplier,
                          self.supplier_classes)
 
-        self.filenames = super().get_all_filenames(self.supplier)
+        self.filenames = super().get_all_filenames()
 
     def add_to_db(self, *args):
         filenames = self.filenames if args == () else args
         super().add_to_db(filenames)
+
 
 class BolDatabase(Database):
     def __init__(self, connection_type):

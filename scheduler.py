@@ -7,7 +7,7 @@ from mainapp.microservice_bol.retailer.api.api import RetailerAPI
 from mainapp.microservice_both.parsers.edc_order import EdcShipment
 from mainapp.microservice_supplier.api.supplier import EdcClient
 from mainapp.microservice_supplier.parsers.converter import EdcConverter
-from mainapp.microservice_supplier.parsers.base_classes import Product, Price, Variant
+from mainapp.microservice_supplier.parsers.base_classes import Product, Variant
 from support.database.database import BolDatabase, EdcDatabase
 from support.database.database_connection import DatabaseSession
 from support.logger.logger import Logger
@@ -159,8 +159,7 @@ def offer_update():
                     Price.buy_price < 40,
                     func.date(Variant.update_date_stock) == today
                     ).values('ean')
-        [o for o in offers]
-        x = 3
+
 
 
 @sched.scheduled_job('interval', minutes=15)

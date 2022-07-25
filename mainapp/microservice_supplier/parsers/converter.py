@@ -7,7 +7,7 @@ from collections import OrderedDict
 from datetime import datetime
 from typing import List
 import pandas as pd
-
+from datetime import datetime as dt
 import xmltodict
 
 from mainapp.microservice_supplier import BASE_PATH
@@ -16,20 +16,30 @@ logger = logging.getLogger('microservice_supplier.converter')
 
 
 class Converter:
-    def __init__(self, supplier, replacement_dict=None):
-        self.supplier = supplier
-        self.replacement_dict = replacement_dict
+    def save_pickle(self, file, file_path):
+        with open(file_path, 'wb') as f:
+            pickle.dump(file, f)
+            logger.info(f"Saved file to {file_path}")
+
+    def read_pickle(self, file_path):
+        return pickle.load(open(file_path, "rb"))
 
     def get_all_feeds_filenames(self):
         path = f'{BASE_PATH}/files/{self.supplier}/feeds/'
         return [filename for filename in os.listdir(path)]
 
+
+class EdcConverter(Converter):
+    def __init__(self, supplier):
+        self.supplier = supplier
+        self.filenames = super().get_all_feeds_filenames()
+
     def __convert_xml_to_list(self, file_name, xml_attribs=True) -> List:
         with open(f"{BASE_PATH}/files/{self.supplier}/feeds/{file_name}.xml", "rb") as f:
-            logger.debug('Starting conversion from XML to dict')
+            logger.debug('Starting conversion from XML to cleaned')
             start = time.time()
             my_dictionary = xmltodict.parse(f, xml_attribs=xml_attribs)
-            logger.debug(f'Conversion from XML to dict Successful. Took {(time.time() - start) / 60:.2f} minutes')
+            logger.debug(f'Conversion from XML to cleaned Successful. Took {(time.time() - start) / 60:.2f} minutes')
 
             # Check that my_dictionary is not empty
             if bool(my_dictionary['products']):
@@ -40,10 +50,10 @@ class Converter:
 
     def __convert_json_to_list(self, file_name) -> List:
         path = f"{BASE_PATH}/files/{self.supplier}/feeds/{file_name}.json"
-        logger.debug('Starting conversion from Json to dict')
+        logger.debug('Starting conversion from Json to cleaned')
         start = time.time()
         my_dictionary = json.load(open(path), object_pairs_hook=OrderedDict)
-        logger.debug(f'Conversion from JSON to dict Successful. Took {(time.time() - start) / 60:.2f} minutes')
+        logger.debug(f'Conversion from JSON to cleaned Successful. Took {(time.time() - start) / 60:.2f} minutes')
         return my_dictionary
 
     '''Ok, this is like quite dirty... But I needed to do it because for example there can be 1 or 
@@ -54,16 +64,8 @@ class Converter:
 
     '''
     Do NOT (NOTNOTNOT) use these functions to convert the output from the API to an XML, pickle can't handle this. I
-    created these functions to save my dict to a file so we wouldn't have to this conversion for every class in parser.
+    created these functions to save my cleaned to a file so we wouldn't have to this conversion for every class in parser.
     '''
-
-    def __save_pickle(self, file, file_path):
-        with open(file_path, 'wb') as f:
-            pickle.dump(file, f)
-            logger.info(f"Saved file to {file_path}")
-
-    def read_pickle(self, file_path):
-        return pickle.load(open(file_path, "rb"))
 
     # TODO : further expand the convert function so it also can parse the 'values' property of properties.
     # TODO : Maybe the convert and loop-through function need to be merged? I don't see the difference between them.
@@ -112,7 +114,7 @@ class Converter:
             d['product_id'] = int(productid_generator.__next__())
             logger.debug(f"Looping through {name} of {d['product_id']}")
             try:
-                # Could make this a lot easier by putting it into a dict?
+                # Could make this a lot easier by putting it into a cleaned?
                 if name == 'variants':
                     x = x['variants']['variant']
                 elif name == 'categories':
@@ -269,16 +271,16 @@ class Converter:
 
         return lst
 
-    # Maybe also add date of change to the dict?
+    # Maybe also add date of change to the cleaned?
     # def convert_prices_setup(self, file):
     #     lst = []
     #     for x in file:
-    #         x = dict(x)
+    #         x = cleaned(x)
     #         x = {key: x[key] for key in x.keys() &
     #              {'productid', 'b2b', 'b2c', 'discount', 'your_price', 'artnr'}}
     #         d1 = {'productid': 'product_id', 'b2b': 'b2b', 'b2c': 'b2c', 'artnr': 'artnr',
     #               'discount': 'discount_percentage', 'your_price': 'buy_price'}
-    #         new = dict((d1[key], value) for (key, value) in x.items())
+    #         new = cleaned((d1[key], value) for (key, value) in x.items())
     #         lst.append(new)
     #
     #     return lst
@@ -326,7 +328,8 @@ class Converter:
 
         return lst
 
-    def initial_convert(self, filenames):
+    def initial_convert(self, *args):
+        filenames = self.filenames if args == () else args
         for filename in filenames:
             name, extention = filename.split('.')
             # kinda dirty, might want to clean this up later
@@ -341,42 +344,83 @@ class Converter:
             elif extention == 'json':
                 file = self.__convert_json_to_list(name)
                 file = self.__convert_date_format(file)
+            else:
+                raise Exception("Extension not known")
 
-            file = self.uniformize_names(file, name)
-
-            self.__save_pickle(file, f"{BASE_PATH}/files/{self.supplier}/dict/{name}.pkl")
-
-    def uniformize_names(self, file, name):
-
-        if self.replacement_dict:
-            to_replace = self.replacement_dict[name]
-            df = pd.DataFrame(file)
-            df = df.rename(index=str, columns=to_replace)
-            file = df.to_dict('records')
-        return file
-
-
-class EdcConverter(Converter):
-    def __init__(self):
-        self.supplier = 'edc'
-        self.replacement_dict = {}
-        super().__init__(self.supplier,
-                         self.replacement_dict)
-        self.filenames = super().get_all_feeds_filenames()
-
-    def initial_convert(self, *args):
-        args = self.filenames if args == () else args
-        super().initial_convert(args)
+            super().save_pickle(file, f"{BASE_PATH}/files/{self.supplier}/cleaned/{name}.pkl")
 
 
 class BigbuyConverter(Converter):
+
     def __init__(self):
         self.supplier = 'bigbuy'
-        self.replacement_dict = {'products': {'sku': 'artnr'}}
-        super().__init__(self.supplier,
-                         self.replacement_dict)
         self.filenames = super().get_all_feeds_filenames()
 
+    def get_df(self, name, extention):
+        path = f"{BASE_PATH}/files/{self.supplier}/feeds/{name}.{extention}"
+        df = pd.read_json(path)
+
+        if name == 'products':
+            descriptions_path = f"{BASE_PATH}/files/{self.supplier}/feeds/productdescriptions.json"
+            categories_path = f"{BASE_PATH}/files/{self.supplier}/feeds/categories.json"
+
+            desc_df = pd.read_json(descriptions_path)[['sku', 'name']]
+            cat_df = pd.read_json(categories_path)[['id', 'name']]
+
+            cat_df.rename(columns={'id': 'category_id', 'name': 'category'}, inplace=True)
+            df.rename(columns={'category': 'category_id'}, inplace=True)
+
+            df = pd.merge(desc_df, df, on='sku')
+            df = pd.merge(cat_df, df,on='category_id')
+
+        if name == 'variants':
+            stock_path = f"{BASE_PATH}/files/{self.supplier}/feeds/stock.json"
+            stock_df = pd.read_json(stock_path)
+
+            stock_df['stock'] = [x[0]['quantity'] for x in stock_df['stocks']]
+            stock_df['update_date_stock'] = dt.now()
+
+            df = pd.merge(stock_df, df, on=['sku', 'id'])
+
+        return df
+
+    def convert(self, df, filename: str):
+        if filename == 'products':
+            return self.convert_products(df)
+        elif filename == 'variants':
+            return self.convert_variants(df)
+
+    def convert_products(self, df):
+
+        # renaming some cols
+        df = df.rename(columns={'sku': 'artnr'})
+
+        # Dropping irrelevant cols
+        df = df[['id', 'artnr', 'name', 'category']]
+
+        return df.to_dict('records')
+
+    def convert_variants(self, df):
+
+        # renaming some cols
+        df = df.rename(columns={'sku': 'artnr',
+                                'ean13': 'ean',
+                                'product': 'product_id',
+                                'wholesalePrice': 'purchaseprice',
+                                })
+
+        # Dropping irrelevant cols
+        df = df[['id', 'artnr', 'ean', 'product_id', 'purchaseprice', 'stock', 'update_date_stock']]
+
+        return df.to_dict('records')
+
     def initial_convert(self, *args):
-        args = self.filenames if args == () else args
-        super().initial_convert(args)
+        filenames = self.filenames if args == () else args
+        for filename in filenames:
+            name, extention = filename.split('.')
+
+            df = self.get_df(name, extention)
+
+            file = self.convert(df, name)
+
+            super().save_pickle(file, f"{BASE_PATH}/files/{self.supplier}/cleaned/{name}.pkl")
