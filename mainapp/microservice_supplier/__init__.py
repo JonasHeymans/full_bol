@@ -4,7 +4,7 @@ from mainapp.microservice_supplier.parsers.edc_classes import EdcProduct, EdcVar
 from mainapp.microservice_supplier.parsers.bigbuy_classes import BigbuyProduct, BigbuyVariant
 
 EDC_BASE_URL = 'http://api.edc.nl/'
-BB_BASE_URL = 'https://api.sandbox.bigbuy.eu/'
+BB_BASE_URL = 'https://api.bigbuy.eu/'
 
 ALL_EDC_CLASS_NAMES = ['Product', 'Variant', "Price", "Brand", 'Category', 'Measures', 'Property', 'Bulletpoint',
                        'Pic' ]
