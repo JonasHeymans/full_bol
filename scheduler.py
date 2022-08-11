@@ -150,13 +150,13 @@ def offer_update():
     # Get offers from db
     with DatabaseSession() as session:
         today = dt.datetime.today().date()
-        offers = session.query(Price) \
-            .join(Product, Price.artnr == Product.artnr) \
+        offers = session.query(Variant) \
+            .join(Product, Variant.artnr == Product.artnr) \
             .join(Variant, Product.product_id == Variant.product_id) \
             .filter(Product.restrictions_platform == 'N',
                     Variant.stockestimate > 3,
                     Variant.stock == 'Y',
-                    Price.buy_price < 40,
+                    Variant.buy_price < 40,
                     func.date(Variant.update_date_stock) == today
                     ).values('ean')
 
