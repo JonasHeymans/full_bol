@@ -1,6 +1,10 @@
 import logging
 import time
 import json
+import os
+import shutil
+import re
+
 import requests
 from decouple import config
 
@@ -27,20 +31,22 @@ class BaseClient:
 
         return request.text, request.status_code
 
-    def save_to_feeds(self, file, filename, filetype='xml'):
-        logger.info(f'Starting saving of {filetype}')
-        with open(f'{BASE_PATH}/files/{self.supplier}/feeds/{filename}.{filetype}', 'w') as f:
-            f.write(file)
-            logger.info(f"Successfully saved {filename}.{filetype}")
+    def save_to_feeds(self, file, name, page='', filetype='xml'):
+        if file:
+            filename = f'{name}_{page}.{filetype}'
+            logger.info(f'Starting saving of {filetype}')
+            with open(f'{BASE_PATH}/files/{self.supplier}/feeds/{name}/{filename}', 'w') as f:
+                f.write(file)
+                logger.info(f"Successfully saved {filename}")
 
-    def merge_json(self, json1, json2):
-        if json1:
-            lstA = json.loads(json1)
-            lstB = json.loads(json2)
-            merged_lst = lstA + lstB
-            return json.dumps(merged_lst)
-        else:
-            return json2
+    # def merge_json(self, json1, json2):
+    #     if json1:
+    #         lstA = json.loads(json1)
+    #         lstB = json.loads(json2)
+    #         merged_lst = lstA + lstB
+    #         return json.dumps(merged_lst)
+    #     else:
+    #         return json2
 
     def get_file(self, name, url, params, response=''):
         if params is None:
@@ -53,14 +59,38 @@ class BaseClient:
                 partial_response, status_code = self.send_request(name, url, params=params)
                 if status_code == 200:
                     params['page'] += 1
-                    response = self.merge_json(response, partial_response)
+                    self.save_to_feeds(partial_response, name, params["page"], filetype='json')
                     logger.info(f'Got {name} page {params["page"]}')
                 elif status_code == 404:
                     status_code = 200
                     response = str(response)
                     break
+        else:
+            logger.warning(f'Failed to get {name}')
+            raise Exception(f'Failed to get {name}')
 
         return response, status_code, params
+
+    def merge_JsonFiles(self,name, files, path):
+        result = list()
+        for f in files:
+            filepath = f'{path}/{f}'
+            with open(filepath, 'r') as infile:
+                result.extend(json.load(infile))
+
+        with open(f'{BASE_PATH}/files/{self.supplier}/merged/{name}.json', 'w') as output_file:
+            json.dump(result, output_file)
+
+    def merge_files(self, name):
+        path = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}'
+        files = [f for f in os.listdir(path)]
+        self.merge_JsonFiles(name, files, path)
+
+
+    def empty_directory(self, name):
+        dir = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}'
+        shutil.rmtree(dir, ignore_errors=False, onerror=None)
+        os.mkdir(dir)
 
     # Please note, this can take a few minutes (around 5 I would say). Maybe async this later?
     def download(self, downloads):
@@ -70,17 +100,23 @@ class BaseClient:
             filetype = row[2]
             params = row[3] if len(row) > 3 else None
 
+            self.empty_directory(name)
+
             response, status_code, params = self.get_file(name, url, params)
 
             if status_code == 200:
                 self.save_to_feeds(response, name, filetype=filetype)
             elif status_code == 429:
                 logger.info("Sleeping because of timeout")
-                time.sleep(60*61)
+                time.sleep(60 * 61)
+                logger.info("Woke up")
                 response, status_code, params = self.get_file(name, url, params, response)
                 self.save_to_feeds(response, name, filetype=filetype)
             else:
                 logger.warning(f'Status code {status_code}')
+
+            logger.info(f'Merging {name}')
+            self.merge_files(name)
 
 
 class EdcClient(BaseClient):
@@ -139,7 +175,6 @@ class BigbuyClient(BaseClient):
                       'json',
                       None],
             'categories': [f'{BB_BASE_URL}rest/catalog/categories.json?isoCode=nl', 'json', None],
-
 
         }
         super().__init__(self.supplier, self.api_key)

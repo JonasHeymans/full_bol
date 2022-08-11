@@ -24,18 +24,18 @@ class Converter:
     def read_pickle(self, file_path):
         return pickle.load(open(file_path, "rb"))
 
-    def get_all_feeds_filenames(self):
-        path = f'{BASE_PATH}/files/{self.supplier}/feeds/'
+    def get_all_filenames(self):
+        path = f'{BASE_PATH}/files/{self.supplier}/merged/'
         return [filename for filename in os.listdir(path)]
 
 
 class EdcConverter(Converter):
     def __init__(self, supplier):
         self.supplier = supplier
-        self.filenames = super().get_all_feeds_filenames()
+        self.filenames = super().get_all_filenames()
 
     def __convert_xml_to_list(self, file_name, xml_attribs=True) -> List:
-        with open(f"{BASE_PATH}/files/{self.supplier}/feeds/{file_name}.xml", "rb") as f:
+        with open(f"{BASE_PATH}/files/{self.supplier}/merged/{file_name}.xml", "rb") as f:
             logger.debug('Starting conversion from XML to cleaned')
             start = time.time()
             my_dictionary = xmltodict.parse(f, xml_attribs=xml_attribs)
@@ -49,7 +49,7 @@ class EdcConverter(Converter):
                     return xmltodict.parse(f, xml_attribs=xml_attribs)
 
     def __convert_json_to_list(self, file_name) -> List:
-        path = f"{BASE_PATH}/files/{self.supplier}/feeds/{file_name}.json"
+        path = f"{BASE_PATH}/files/{self.supplier}/merged/{file_name}.json"
         logger.debug('Starting conversion from Json to cleaned')
         start = time.time()
         my_dictionary = json.load(open(path), object_pairs_hook=OrderedDict)
@@ -336,7 +336,7 @@ class EdcConverter(Converter):
             if extention == 'csv':
                 continue
             elif name == 'stock':
-                with open(f"{BASE_PATH}/files/{self.supplier}/feeds/{name}.xml", "rb") as f:
+                with open(f"{BASE_PATH}/files/{self.supplier}/merged/{name}.xml", "rb") as f:
                     file = xmltodict.parse(f, xml_attribs=True)
             elif extention == 'xml':
                 file = self.__convert_xml_to_list(name)
@@ -354,15 +354,15 @@ class BigbuyConverter(Converter):
 
     def __init__(self):
         self.supplier = 'bigbuy'
-        self.filenames = super().get_all_feeds_filenames()
+        self.filenames = super().get_all_filenames()
 
     def get_df(self, name, extention):
-        path = f"{BASE_PATH}/files/{self.supplier}/feeds/{name}.{extention}"
+        path = f"{BASE_PATH}/files/{self.supplier}/merged/{name}.{extention}"
         df = pd.read_json(path)
 
         if name == 'products':
-            descriptions_path = f"{BASE_PATH}/files/{self.supplier}/feeds/productdescriptions.json"
-            categories_path = f"{BASE_PATH}/files/{self.supplier}/feeds/categories.json"
+            descriptions_path = f"{BASE_PATH}/files/{self.supplier}/merged/productdescriptions.json"
+            categories_path = f"{BASE_PATH}/files/{self.supplier}/merged/categories.json"
 
             desc_df = pd.read_json(descriptions_path)[['sku', 'name']]
             cat_df = pd.read_json(categories_path)[['id', 'name']]
@@ -374,7 +374,7 @@ class BigbuyConverter(Converter):
             df = pd.merge(cat_df, df,on='category_id')
 
         if name == 'variants':
-            stock_path = f"{BASE_PATH}/files/{self.supplier}/feeds/stock.json"
+            stock_path = f"{BASE_PATH}/files/{self.supplier}/merged/stock.json"
             stock_df = pd.read_json(stock_path)
 
             stock_df['stock'] = [x[0]['quantity'] for x in stock_df['stocks']]

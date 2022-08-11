@@ -115,11 +115,13 @@ class Database:
         update_target_id = getattr(update_target_class, update_targets[update_target][1])
 
         new_lst = split_list(file, 500)
+        logger.info(f'Stating pushing {len(new_lst)} parts to the db')
         for lst in new_lst:
             self.__push_to_db(lst, update_target_id, update_target_class)
-            logger.debug(f'Completed {new_lst.index(lst) + 1} of {len(new_lst)}')
+            logger.info(f'Completed {new_lst.index(lst) + 1} of {len(new_lst)}, '
+                        f'took already {(time.time() - starttime) / 60 :.2f} minutes')
 
-        logger.debug(
+        logger.info(
             f'Successfully inserted {update_target} to Database in {(time.time() - starttime) / 60 :.2f} minutes!')
 
 
