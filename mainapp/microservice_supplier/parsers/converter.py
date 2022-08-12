@@ -370,6 +370,7 @@ class BigbuyConverter(Converter):
             cat_df.rename(columns={'id': 'category_id', 'name': 'category'}, inplace=True)
             df.rename(columns={'category': 'category_id'}, inplace=True)
 
+
             df = pd.merge(desc_df, df, on='sku')
             df = pd.merge(cat_df, df,on='category_id')
 
@@ -393,10 +394,10 @@ class BigbuyConverter(Converter):
     def convert_products(self, df):
 
         # renaming some cols
-        df = df.rename(columns={'sku': 'artnr'})
+        df = df.rename(columns={'sku': 'artnr',  'ean13': 'ean'})
 
         # Dropping irrelevant cols
-        df = df[['id', 'artnr', 'name', 'category']]
+        df = df[['id', 'artnr', 'name', 'category', 'ean']]
 
         return df.to_dict('records')
 
@@ -417,6 +418,8 @@ class BigbuyConverter(Converter):
     def initial_convert(self, *args):
         filenames = self.filenames if args == () else args
         for filename in filenames:
+            if filename == '.gitkeep':
+                continue
             name, extention = filename.split('.')
 
             df = self.get_df(name, extention)
