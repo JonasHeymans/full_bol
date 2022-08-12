@@ -30,7 +30,10 @@ class Product(Base):
         self.supplier = supplier
         self.product_id = parent['id']
         self.artnr = parent.pop('artnr', None)
-        self.ean = str(parent.pop('ean', None)).strip('.0')
+
+        ean = parent.pop('ean', None)
+        self.ean = str(ean).strip('.0') if ean else None
+
         self.update_date = dt.now()
         self.name = parent.pop('name', None)
         self.category = parent.pop('category', None)
@@ -42,7 +45,7 @@ class Product(Base):
     product_id = Column(Integer, primary_key=True)
     artnr = Column(String(255), unique=True)
     # This needs to be a string, otherwise the number is too big for even a bigint, also retains leading zeros
-    ean = Column(String(255), unique=True)
+    ean = Column(String(255))
     update_date = Column(DateTime)
     name = Column(String(255))
     category = Column(String(255))
