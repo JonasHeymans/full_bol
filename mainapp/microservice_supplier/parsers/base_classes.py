@@ -30,6 +30,7 @@ class Product(Base):
         self.supplier = supplier
         self.product_id = parent['id']
         self.artnr = parent.pop('artnr', None)
+        self.ean = parent.pop('ean', None)
         self.update_date = dt.now()
         self.name = parent.pop('name', None)
         self.category = parent.pop('category', None)
@@ -40,6 +41,7 @@ class Product(Base):
     supplier = Column(String(50))
     product_id = Column(Integer, primary_key=True)
     artnr = Column(String(255), unique=True)
+    ean = Column(BIGINT, unique=True)
     update_date = Column(DateTime)
     name = Column(String(255))
     category = Column(String(255))

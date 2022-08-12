@@ -12,10 +12,11 @@ log = Logger().get_commandline_logger('debug')
 # bibu = BigbuyClient()
 # bibu.download()
 
-con = BigbuyConverter()
-con.initial_convert()
+# con = BigbuyConverter()
+# con.initial_convert()
 
 ad = BigbuyAdapter
+
 
 db = BigbuyDatabase(connection_type='merge')
 db.add_to_db()

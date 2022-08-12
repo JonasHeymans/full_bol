@@ -370,9 +370,8 @@ class BigbuyConverter(Converter):
             cat_df.rename(columns={'id': 'category_id', 'name': 'category'}, inplace=True)
             df.rename(columns={'category': 'category_id'}, inplace=True)
 
-
             df = pd.merge(desc_df, df, on='sku')
-            df = pd.merge(cat_df, df,on='category_id')
+            df = pd.merge(cat_df, df, on='category_id')
 
         if name == 'variants':
             stock_path = f"{BASE_PATH}/files/{self.supplier}/merged/stock.json"
@@ -394,7 +393,7 @@ class BigbuyConverter(Converter):
     def convert_products(self, df):
 
         # renaming some cols
-        df = df.rename(columns={'sku': 'artnr',  'ean13': 'ean'})
+        df = df.rename(columns={'sku': 'artnr', 'ean13': 'ean'})
 
         # Dropping irrelevant cols
         df = df[['id', 'artnr', 'name', 'category', 'ean']]
@@ -415,7 +414,29 @@ class BigbuyConverter(Converter):
 
         return df.to_dict('records')
 
+    def merge_JsonFiles(self, name, files, path):
+        result = list()
+        for f in files:
+            if f == '.gitkeep':
+                continue
+            filepath = f'{path}/{f}'
+            with open(filepath, 'r') as infile:
+                result.extend(json.load(infile))
+
+        with open(f'{BASE_PATH}/files/{self.supplier}/merged/{name}.json', 'w') as output_file:
+            json.dump(result, output_file)
+
+    def merge_files(self):
+        feeds_path = f'{BASE_PATH}/files/{self.supplier}/feeds'
+        for dir in os.listdir(feeds_path):
+            dir_path = f'{feeds_path}/{dir}'
+            if os.path.isdir(dir_path):
+                files = [f for f in os.listdir(dir_path) if os.path.isdir(dir_path)]
+                self.merge_JsonFiles(dir, files, dir_path)
+
     def initial_convert(self, *args):
+        self.merge_files()
+
         filenames = self.filenames if args == () else args
         for filename in filenames:
             if filename == '.gitkeep':
