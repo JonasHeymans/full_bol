@@ -17,7 +17,6 @@ log = Logger().get_commandline_logger('debug')
 
 ad = BigbuyAdapter
 
-
 db = BigbuyDatabase(connection_type='merge')
 db.add_to_db()
 
