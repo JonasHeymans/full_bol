@@ -41,7 +41,8 @@ class Product(Base):
     supplier = Column(String(50))
     product_id = Column(Integer, primary_key=True)
     artnr = Column(String(255), unique=True)
-    ean = Column(BIGINT, unique=True)
+    # This needs to be a string, otherwise the number is too big for even a bigint, also retains leading zeros
+    ean = Column(String(255), unique=True)
     update_date = Column(DateTime)
     name = Column(String(255))
     category = Column(String(255))
