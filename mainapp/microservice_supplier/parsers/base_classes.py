@@ -30,7 +30,7 @@ class Product(Base):
         self.supplier = supplier
         self.product_id = parent['id']
         self.artnr = parent.pop('artnr', None)
-        self.ean = int(parent.pop('ean', None))
+        self.ean = str(parent.pop('ean', None)).strip('.0')
         self.update_date = dt.now()
         self.name = parent.pop('name', None)
         self.category = parent.pop('category', None)
