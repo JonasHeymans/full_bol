@@ -71,26 +71,12 @@ class BaseClient:
 
         return response, status_code, params
 
-    def merge_JsonFiles(self,name, files, path):
-        result = list()
-        for f in files:
-            filepath = f'{path}/{f}'
-            with open(filepath, 'r') as infile:
-                result.extend(json.load(infile))
-
-        with open(f'{BASE_PATH}/files/{self.supplier}/merged/{name}.json', 'w') as output_file:
-            json.dump(result, output_file)
-
-    def merge_files(self, name):
-        path = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}'
-        files = [f for f in os.listdir(path)]
-        self.merge_JsonFiles(name, files, path)
-
 
     def empty_directory(self, name):
         dir = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}'
         shutil.rmtree(dir, ignore_errors=False, onerror=None)
         os.mkdir(dir)
+        open(f'{dir}/.gitkeep', 'a').close()
 
     # Please note, this can take a few minutes (around 5 I would say). Maybe async this later?
     def download(self, downloads):
@@ -116,7 +102,6 @@ class BaseClient:
                 logger.warning(f'Status code {status_code}')
 
             logger.info(f'Merging {name}')
-            self.merge_files(name)
 
 
 class EdcClient(BaseClient):
