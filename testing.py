@@ -8,9 +8,9 @@ from support.logger.logger import Logger
 log = Logger().get_commandline_logger('debug')
 
 # todo: enum for 'connection_type': merge, update or fill.
-
-bibu = BigbuyClient()
-bibu.download()
+#
+# bibu = BigbuyClient()
+# bibu.download()
 
 con = BigbuyConverter()
 con.initial_convert()
