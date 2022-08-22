@@ -363,15 +363,22 @@ class BigbuyConverter(Converter):
         if name == 'products':
             descriptions_path = f"{BASE_PATH}/files/{self.supplier}/merged/productdescriptions.json"
             categories_path = f"{BASE_PATH}/files/{self.supplier}/merged/categories.json"
+            stock_path = f"{BASE_PATH}/files/{self.supplier}/merged/productstock.json"
+
 
             desc_df = pd.read_json(descriptions_path)[['sku', 'name']]
             cat_df = pd.read_json(categories_path)[['id', 'name']]
 
+            stock_df = pd.read_json(stock_path)
+            stock_df['stock'] = [x[0]['quantity'] for x in stock_df['stocks']]
+            stock_df['update_date_stock'] = dt.now()
+
             cat_df.rename(columns={'id': 'category_id', 'name': 'category'}, inplace=True)
             df.rename(columns={'category': 'category_id'}, inplace=True)
 
-            df = pd.merge(desc_df, df, on='sku')
-            df = pd.merge(cat_df, df, on='category_id')
+            df = pd.merge(df, desc_df, on='sku', how='left')
+            df = pd.merge(df, cat_df, on='category_id', how='left')
+            df = pd.merge(df, stock_df, on=['sku', 'id'], how='inner')
 
         if name == 'variants':
             stock_path = f"{BASE_PATH}/files/{self.supplier}/merged/stock.json"
@@ -380,7 +387,7 @@ class BigbuyConverter(Converter):
             stock_df['stock'] = [x[0]['quantity'] for x in stock_df['stocks']]
             stock_df['update_date_stock'] = dt.now()
 
-            df = pd.merge(stock_df, df, on=['sku', 'id'])
+            df = pd.merge(stock_df, df, on=['sku', 'id'], how='right')
 
         return df
 
@@ -393,10 +400,10 @@ class BigbuyConverter(Converter):
     def convert_products(self, df):
 
         # renaming some cols
-        df = df.rename(columns={'sku': 'artnr', 'ean13': 'ean'})
+        df = df.rename(columns={'sku': 'artnr', 'ean13': 'ean', 'wholesalePrice': 'purchaseprice'})
 
         # Dropping irrelevant cols
-        df = df[['id', 'artnr', 'name', 'category', 'ean']]
+        df = df[['id', 'artnr', 'name', 'category', 'ean', 'stock', 'purchaseprice']]
 
         return df.to_dict('records')
 

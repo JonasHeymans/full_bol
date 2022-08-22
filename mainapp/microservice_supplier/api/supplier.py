@@ -1,12 +1,9 @@
 import logging
-import time
-import json
 import os
 import shutil
-import re
+import time
 
 import requests
-from decouple import config
 
 from mainapp.microservice_supplier import EDC_BASE_URL, BB_BASE_URL, BASE_PATH
 
@@ -18,8 +15,15 @@ class BaseClient:
         self.supplier = supplier
         self.api_key = api_key
 
+    def get_startpage(self, name):
+        path = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}/'
+        files = [file.strip('.json').split('_') for file in os.listdir(path) if file.endswith('.json')]
+        timestamps = {file[1]: file[2] for file in files}
+
+        return int(max(timestamps)) + 1
+
     def send_request(self, name, url, params):
-        logger.info(f'Sending request for {name}')
+        logger.debug(f'Sending request for {name}')
 
         if self.supplier == 'bigbuy':
             request = requests.get(url,
@@ -29,48 +33,40 @@ class BaseClient:
         elif self.supplier == 'edc':
             request = requests.get(url)
 
+        else:
+            raise Exception(f'Unknown supplier {self.supplier}')
+
         return request.text, request.status_code
 
-    def save_to_feeds(self, file, name, page='', filetype='xml'):
+    def save_to_feeds(self, file, name, page, filetype='xml'):
+        current_epoch = time.time()
         if file:
-            filename = f'{name}_{page}.{filetype}'
+            filename = f'{name}_{page}_{current_epoch}.{filetype}'
             logger.info(f'Starting saving of {filetype}')
-            with open(f'{BASE_PATH}/files/{self.supplier}/feeds/{name}/{filename}', 'w') as f:
+            path = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}/{filename}'
+            with open(path, 'w') as f:
                 f.write(file)
                 logger.info(f"Successfully saved {filename}")
-
-    # def merge_json(self, json1, json2):
-    #     if json1:
-    #         lstA = json.loads(json1)
-    #         lstB = json.loads(json2)
-    #         merged_lst = lstA + lstB
-    #         return json.dumps(merged_lst)
-    #     else:
-    #         return json2
 
     def get_file(self, name, url, params, response=''):
         if params is None:
             response, status_code = self.send_request(name, url, params=params)
 
-        elif 'page' in params:
-            response = response if response else ''
-            status_code = 200
-            while status_code == 200:
-                partial_response, status_code = self.send_request(name, url, params=params)
-                if status_code == 200:
-                    params['page'] += 1
-                    self.save_to_feeds(partial_response, name, params["page"], filetype='json')
-                    logger.info(f'Got {name} page {params["page"]}')
-                elif status_code == 404:
-                    status_code = 200
-                    response = str(response)
-                    break
+
+        elif ('pageSize' in params):
+            if 'page' not in params:
+                params['page'] = self.get_startpage(name)
+                self.empty_directory(name)
+
+            response, status_code = self.send_request(name, url, params=params)
+
+            params['page'] += 1
+
         else:
             logger.warning(f'Failed to get {name}')
             raise Exception(f'Failed to get {name}')
 
         return response, status_code, params
-
 
     def empty_directory(self, name):
         dir = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}'
@@ -84,20 +80,30 @@ class BaseClient:
             name = row[0]
             url = row[1]
             filetype = row[2]
+
+            # If row has more than 3 arguments, it's a list of params to pass to the request
             params = row[3] if len(row) > 3 else None
 
-            self.empty_directory(name)
+            # Has to be here else we persist the status code over the various filenames
+            status_code = 200
+            while status_code in [200, 429, 404]:
+                if status_code == 404:
+                    logger.info(f'Reached end of {name}, starting from beginning')
+                    params['page'] = 0
 
-            response, status_code, params = self.get_file(name, url, params)
+                response, status_code, params = self.get_file(name, url, params)
 
-            if status_code == 200:
-                self.save_to_feeds(response, name, filetype=filetype)
-            elif status_code == 429:
-                logger.info("Sleeping because of timeout")
-                time.sleep(60 * 61)
-                logger.info("Woke up")
-                response, status_code, params = self.get_file(name, url, params, response)
-                self.save_to_feeds(response, name, filetype=filetype)
+                if status_code == 429:
+                    logger.info(f'Max requests reached')
+                    break
+                elif status_code == 200:
+                    page = params['page'] if params else ''
+                    self.save_to_feeds(response, name, page, filetype=filetype)
+                    logger.info(f'Got {name} page {params["page"] if params else ""}')
+
+                if params is None:
+                    break
+
             else:
                 logger.warning(f'Status code {status_code}')
 
@@ -107,7 +113,7 @@ class BaseClient:
 class EdcClient(BaseClient):
     def __init__(self):
         self.supplier = 'edc'
-        self.api_key = config('EDC_API_KEY')
+        self.api_key = os.getenv('EDC_API_KEY')
         self.downloads = {
             'full': [f'{EDC_BASE_URL}b2b_feed.php?key={self.api_key}&sort=xml&type=xml&lang=en&version=2015',
                      'xml'],
@@ -134,16 +140,17 @@ class EdcClient(BaseClient):
 class BigbuyClient(BaseClient):
     def __init__(self):
         self.supplier = 'bigbuy'
-        self.api_key = config('BB_API_KEY')
+        self.api_key = os.getenv('BB_API_KEY')
         self.downloads = {
             'products': [f'{BB_BASE_URL}rest/catalog/products.json?isoCode=NL',
                          'json',
-                         {'pageSize': 10000,
-                          'page': 0}],
+                         {'pageSize': 10000, }],
             'variants': [f'{BB_BASE_URL}rest/catalog/productsvariations.json?isoCode=NL',
                          'json',
-                         {'pageSize': 10000,
-                          'page': 0}],
+                         {'pageSize': 10000}],
+            'productstock': [f'{BB_BASE_URL}rest/catalog/productsstock.json',
+                             'json',
+                             {'pageSize': 10000}],
             'productdescriptions': [f'{BB_BASE_URL}rest/catalog/productsinformation.json?isoCode=NL',
                                     'json',
                                     None],
@@ -158,7 +165,7 @@ class BigbuyClient(BaseClient):
                                 None],
             'stock': [f'{BB_BASE_URL}rest/catalog/productsvariationsstock.json?isoCode=NL',
                       'json',
-                      None],
+                      {'pageSize': 10000}],
             'categories': [f'{BB_BASE_URL}rest/catalog/categories.json?isoCode=nl', 'json', None],
 
         }

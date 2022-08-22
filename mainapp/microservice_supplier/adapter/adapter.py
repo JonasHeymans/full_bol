@@ -59,7 +59,7 @@ class EdcAdapter(Adapter):
         self.supplier = 'edc'
         self.classes = ALL_EDC_CLASSES
 
-        super().__init__(self.supplier, self.classes)
+
 
 class BigbuyAdapter(Adapter):
     def __init__(self):
