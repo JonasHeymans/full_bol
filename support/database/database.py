@@ -2,7 +2,6 @@ import logging
 import os
 import time
 
-from decouple import config
 from sqlalchemy.exc import IntegrityError
 
 from mainapp.microservice_bol.adapter.adapter import BolAdapter
@@ -24,7 +23,7 @@ def split_list(lst, chunk_size):
 
 class Database:
     def __init__(self, connection_type):
-        self.DATABASE_URL = config('DATABASE_URL')
+        self.DATABASE_URL = os.getenv('DATABASE_URL')
         self.connection_type = connection_type
         self.__start_db_session()
 
@@ -114,7 +113,7 @@ class Database:
         update_target_class = update_targets[update_target][0]
         update_target_id = getattr(update_target_class, update_targets[update_target][1])
 
-        new_lst = split_list(file, 500)
+        new_lst = split_list(file, 9999)
         logger.info(f'Stating pushing {len(new_lst)} parts to the db')
         for lst in new_lst:
             self.__push_to_db(lst, update_target_id, update_target_class)

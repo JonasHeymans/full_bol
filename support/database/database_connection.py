@@ -1,9 +1,9 @@
+import os
 import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.schema import CreateSchema
 import time
-from decouple import config
 
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class DatabaseSession:
     def __init__(self):
         self.connection = None
-        self.DATABASE_URL = config('DATABASE_URL')
+        self.DATABASE_URL = os.getenv('DATABASE_URL')
 
         self.starttime_connection = time.time()
         self.engine = create_engine(self.DATABASE_URL,echo=False)

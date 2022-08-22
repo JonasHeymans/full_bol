@@ -1,8 +1,7 @@
 import logging
-import time
+import os
 
 import requests
-from decouple import config
 
 from mainapp.microservice_bol.constants.constants import DeliveryCode, ConditionName
 from mainapp.microservice_bol.retailer.models.models import (
@@ -342,12 +341,12 @@ class RetailerAPI(object):
 
     def login(self):
         data = {
-            "client_secret": config('BOL_CLIENT_SECRET'),
+            "client_secret": os.getenv('BOL_CLIENT_SECRET'),
             "grant_type": "client_credentials",
         }
         resp = self.session.post(
             self.login_url + "/token",
-            auth=(config('BOL_CLIENT_ID'), config('BOL_CLIENT_SECRET')),
+            auth=(os.getenv('BOL_CLIENT_ID'), os.getenv('BOL_CLIENT_SECRET')),
             data=data,
         )
         resp.raise_for_status()

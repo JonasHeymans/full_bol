@@ -22,33 +22,64 @@ schema_name = 'suppliers'
 logger = logging.getLogger('microservice_supplier.parser')
 
 
-class Product(Base):
+class Item():
+
+    def calculate_sellprice(self, purchaseprice):
+        # Todo: fix this ugly bugfix properly, I implemented it because we sometimes do not get a b2b price, for example
+        # when updating the prices, and we only get a b2c price
+        if math.isnan(purchaseprice):
+            return np.nan
+
+        bol_commission = 0.15
+        profit_margin = 0.1
+        tax_percentage = 0.21
+        return_percentage = 0.03
+
+        shipping_cost = 9.00
+
+        sell_price = (purchaseprice + shipping_cost + 1) / (
+                    1 - bol_commission - profit_margin - tax_percentage - return_percentage)
+        rounded_sell_price = math.ceil(sell_price) - 0.01
+
+        return rounded_sell_price
+
+
+class Product(Base, Item):
     __tablename__ = 'products'
     __table_args__ = {'schema': schema_name}
 
     def __init__(self, parent, supplier):
+        super().__init__()
+
         self.supplier = supplier
         self.product_id = parent['id']
         self.artnr = parent.pop('artnr', None)
 
         ean = parent.pop('ean', None)
         self.ean = str(ean).strip('.0') if ean else None
+        self.purchaseprice = parent.pop('purchaseprice', np.nan)
+        self.sellprice = super().calculate_sellprice(self.purchaseprice)
 
+        self.stock = parent.pop('stock', None)
         self.update_date = dt.now()
         self.name = parent.pop('name', None)
         self.category = parent.pop('category', None)
 
     def __repr__(self):
-        return f"Product object with product_id '{self.product_id}', artnr '{self.artnr}', enz"
+        return f"Product object with product_id '{self.product_id}', artnr '{self.artnr}," \
+               f" stock {self.stock}', enz"
 
     supplier = Column(String(50))
-    product_id = Column(Integer, primary_key=True)
+    product_id = Column(Integer, primary_key=True, nullable=False)
     artnr = Column(String(255), unique=True)
     # This needs to be a string, otherwise the number is too big for even a bigint, also retains leading zeros
     ean = Column(String(255))
     update_date = Column(DateTime)
     name = Column(String(255))
     category = Column(String(255))
+    stock = Column(Integer, nullable=False)
+    purchaseprice = Column(Float)
+    sellprice = Column(Float)
 
     variants = relationship("Variant")
 
@@ -58,29 +89,32 @@ class Product(Base):
     }
 
 
-class Variant(Base):
+class Variant(Base, Item):
     __tablename__ = 'variants'
     __table_args__ = {'schema': schema_name}
 
     def __init__(self, parent, supplier):
+        super().__init__()
+
         self.supplier = supplier
+
         self.product_id = parent['product_id']
         self.id = parent.pop('id', None)
         self.artnr = parent['artnr']
         self.ean = parent.pop('ean', None)
-        self.purchaseprice = parent.pop('purchaseprice', None)
-        self.sellprice = self.__calculate_sellprice(self.purchaseprice)
+        self.purchaseprice = parent.pop('purchaseprice', np.nan)
+        self.sellprice = super().calculate_sellprice(self.purchaseprice)
         self.update_date = dt.now()
         self.stock = parent.pop('stock', None)
         self.update_date_stock = parent.pop('update_date_stock', None)
 
     def __repr__(self):
-        return f"Variant object with product_id '{self.product_id}', artnr '{self.artnr}', enz"
+        return f"Variant object with product_id '{self.product_id}', artnr '{self.artnr}', price '{self.sellprice}' enz"
 
     supplier = Column(String(50))
     id = Column(Integer)
     artnr = Column(String(255), primary_key=True)
-    ean = Column(BIGINT)
+    ean = Column(String(255))
     stock = Column(Integer)
     update_date_stock = Column(DateTime)
     purchaseprice = Column(Float)
@@ -96,25 +130,6 @@ class Variant(Base):
 
     def stock_update(self):
         self.update_date_stock = dt.now()
-
-    def __calculate_sellprice(self, purchaseprice):
-        # Todo: fix this ugly bugfix properly, I implemented it because we sometimes do not get a b2b price, for example
-        # when updating the prices, and we only get a b2c price
-        if math.isnan(purchaseprice):
-            return np.nan
-
-        bol_commission = 0.15
-        profit_margin = 0.1
-        tax_percentage = 0.21
-        return_percentage = 0.03
-
-        shipping_cost = 9.00
-
-
-        sell_price = (purchaseprice + shipping_cost + 1) / (1 - bol_commission - profit_margin - tax_percentage- return_percentage)
-        rounded_sell_price = math.ceil(sell_price) - 0.01
-
-        return rounded_sell_price
 
 # class Price(Base):
 #     __tablename__ = 'prices'
