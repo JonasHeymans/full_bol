@@ -2,7 +2,8 @@ from sqlalchemy import Column, Integer, String, TEXT, Boolean, DateTime, Date, F
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from mainapp.microservice_bol.constants.constants import TimeFrameType, DistributionParty, Salutation, ConditionName, FulfilmentMethod,DeliveryCode
+from mainapp.microservice_bol.constants.constants import TimeFrameType, DistributionParty, Salutation, ConditionName, \
+    FulfilmentMethod, DeliveryCode
 
 Base = declarative_base()
 schema_name = 'bol'
@@ -279,6 +280,7 @@ class billingDetails(Base, Item):
     kvkNumber = Column(String(50))
     orderReference = Column(String(256))
 
+
 class Offer(Base, Item):
     __tablename__ = 'offers'
     __table_args__ = {'schema': schema_name}
@@ -294,7 +296,7 @@ class Offer(Base, Item):
         self.stockamount = self.extract('stockamount')
         self.managedByRetailer = True
         self.fulfilmentmethod = self.extract('fulfilmentmethod')
-        self.deliverycode  = self.extract('deliverycode')
+        self.deliverycode = self.extract('deliverycode')
 
     ean = Column(BIGINT, primary_key=True)
     condition = Column(Enum(ConditionName))
@@ -308,11 +310,9 @@ class Offer(Base, Item):
     prices = relationship("Price", back_populates='offer')
 
 
-
 class Price(Base, Item):
     __tablename__ = 'prices'
     __table_args__ = {'schema': schema_name}
-
 
     def __init__(self, parent):
         super().__init__()
@@ -321,8 +321,7 @@ class Price(Base, Item):
         self.quantity = self.extract('quantity')
         self.unitPrice = self.extract('unitPrice')
 
-
-    id = Column(Integer, primary_key=True , autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
 
     quantity = Column(Integer)
     unitPrice = Column(Integer)
@@ -330,8 +329,10 @@ class Price(Base, Item):
     offer_id = Column(BIGINT, ForeignKey(f'{schema_name}.offers.ean'))
     offer = relationship("Offer", back_populates="prices")
 
+
 class fulfilment():
     pass
+
 
 class product():
     pass

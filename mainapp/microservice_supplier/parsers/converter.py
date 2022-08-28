@@ -365,7 +365,6 @@ class BigbuyConverter(Converter):
             categories_path = f"{BASE_PATH}/files/{self.supplier}/merged/categories.json"
             stock_path = f"{BASE_PATH}/files/{self.supplier}/merged/productstock.json"
 
-
             desc_df = pd.read_json(descriptions_path)[['sku', 'name']]
             cat_df = pd.read_json(categories_path)[['id', 'name']]
 
@@ -387,7 +386,7 @@ class BigbuyConverter(Converter):
             stock_df['stock'] = [x[0]['quantity'] for x in stock_df['stocks']]
             stock_df['update_date_stock'] = dt.now()
 
-            df = pd.merge(stock_df, df, on=['sku', 'id'], how='right')
+            df = pd.merge(df, stock_df, on=['sku', 'id'], how='left')
 
         return df
 

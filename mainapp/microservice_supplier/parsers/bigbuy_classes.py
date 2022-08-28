@@ -22,7 +22,6 @@ class BigbuyVariant(Variant):
         'polymorphic_identity': f'{supplier}',
     }
 
-
 # class BigbuyPrice(Price):
 #
 #     def __init__(self, parent):

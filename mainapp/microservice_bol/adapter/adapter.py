@@ -32,7 +32,7 @@ class BolAdapter:
         return class_object
 
     def extract_children(self, order_list, classname):
-        items = [[getattr(order, classname),order.orderId] for order in order_list]
+        items = [[getattr(order, classname), order.orderId] for order in order_list]
         for item in items:
             order_id = item[1]
             if isinstance(item[0], list):

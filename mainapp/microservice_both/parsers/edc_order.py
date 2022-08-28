@@ -30,7 +30,6 @@ class EdcShipment(Base):
     status = Column(String(50))
     send_to_bol = Column(Boolean)
 
-
 # class EdcOrder(Base):
 #     __tablename__ = 'edcorders'
 #     __table_args__ = {'schema': schema_name}

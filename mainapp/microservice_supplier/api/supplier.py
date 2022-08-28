@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 import time
+import re
 
 import requests
 
@@ -20,7 +21,9 @@ class BaseClient:
         files = [file.strip('.json').split('_') for file in os.listdir(path) if file.endswith('.json')]
         timestamps = {file[1]: file[2] for file in files}
 
-        return int(max(timestamps)) + 1
+        startpage = int(max(timestamps)) - 9
+
+        return startpage if startpage >= 0 else 0
 
     def send_request(self, name, url, params):
         logger.debug(f'Sending request for {name}')
@@ -39,16 +42,19 @@ class BaseClient:
         return request.text, request.status_code
 
     def save_to_feeds(self, file, name, page, filetype='xml'):
-        current_epoch = time.time()
+        current_epoch = int(time.time())
         if file:
-            filename = f'{name}_{page}_{current_epoch}.{filetype}'
-            logger.info(f'Starting saving of {filetype}')
-            path = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}/{filename}'
+            filename = f'{name}_{str(page).zfill(2)}'
+            raw_filename = f'{filename}_{current_epoch}.{filetype}'
+            logger.debug(f'Starting saving of {filetype}')
+            path = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}/{raw_filename}'
             with open(path, 'w') as f:
                 f.write(file)
                 logger.info(f"Successfully saved {filename}")
 
-    def get_file(self, name, url, params, response=''):
+            self.delete_old_file(filename)
+
+    def get_file(self, name, url, params):
         if params is None:
             response, status_code = self.send_request(name, url, params=params)
 
@@ -56,7 +62,6 @@ class BaseClient:
         elif ('pageSize' in params):
             if 'page' not in params:
                 params['page'] = self.get_startpage(name)
-                self.empty_directory(name)
 
             response, status_code = self.send_request(name, url, params=params)
 
@@ -68,11 +73,19 @@ class BaseClient:
 
         return response, status_code, params
 
-    def empty_directory(self, name):
-        dir = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}'
-        shutil.rmtree(dir, ignore_errors=False, onerror=None)
-        os.mkdir(dir)
-        open(f'{dir}/.gitkeep', 'a').close()
+    def delete_old_file(self, new_filename):
+        name, page = new_filename.split('_')
+        path = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}'
+        raw_filenames = os.listdir(path)
+
+        filenames = [re.search('\D*\d+', filename).group(0) for filename in raw_filenames]
+        if new_filename in filenames:
+            duplicates = [filename for filename in raw_filenames if filename.startswith(new_filename)]
+            duplicates.sort()
+            if len(duplicates) > 1:
+                logger.info(f'Deleting {duplicates[0]}')
+                to_drop_filename = duplicates[0]
+                os.remove(f'{path}/{to_drop_filename}')
 
     # Please note, this can take a few minutes (around 5 I would say). Maybe async this later?
     def download(self, downloads):
@@ -94,20 +107,17 @@ class BaseClient:
                 response, status_code, params = self.get_file(name, url, params)
 
                 if status_code == 429:
-                    logger.info(f'Max requests reached')
+                    logger.info(f'Max requests reached for {name}')
                     break
                 elif status_code == 200:
                     page = params['page'] if params else ''
                     self.save_to_feeds(response, name, page, filetype=filetype)
-                    logger.info(f'Got {name} page {params["page"] if params else ""}')
 
                 if params is None:
                     break
 
             else:
                 logger.warning(f'Status code {status_code}')
-
-            logger.info(f'Merging {name}')
 
 
 class EdcClient(BaseClient):
@@ -144,13 +154,14 @@ class BigbuyClient(BaseClient):
         self.downloads = {
             'products': [f'{BB_BASE_URL}rest/catalog/products.json?isoCode=NL',
                          'json',
-                         {'pageSize': 10000, }],
+                         {'pageSize': 25000}],
             'variants': [f'{BB_BASE_URL}rest/catalog/productsvariations.json?isoCode=NL',
                          'json',
                          {'pageSize': 10000}],
             'productstock': [f'{BB_BASE_URL}rest/catalog/productsstock.json',
                              'json',
-                             {'pageSize': 10000}],
+                             {'pageSize': 25000}],
+
             'productdescriptions': [f'{BB_BASE_URL}rest/catalog/productsinformation.json?isoCode=NL',
                                     'json',
                                     None],

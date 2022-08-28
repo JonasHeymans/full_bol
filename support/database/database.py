@@ -2,6 +2,7 @@ import logging
 import os
 import time
 
+import numpy as np
 from sqlalchemy.exc import IntegrityError
 
 from mainapp.microservice_bol.adapter.adapter import BolAdapter
@@ -60,6 +61,7 @@ class Database:
                         logger.debug(f'Pushed {item} to db')
 
                     except IntegrityError as e:
+                        logger.warning(f'{e}')
                         try:
                             error_item_location = lst.index(item) - 1
                             error_item = lst[error_item_location]
@@ -67,7 +69,6 @@ class Database:
                             session.rollback()
 
                             if f'(product_id)=({error_item.product_id}) is not present in table' in e.args[0]:
-
                                 product_item = Product(parent={'id': error_item.product_id,
                                                                'name': 'Not found'},
                                                        supplier=error_item.supplier)
@@ -77,24 +78,24 @@ class Database:
 
                                 session.merge(error_item)
 
-
-                            elif f'(artnr)=({error_item.artnr}) is not present in table "products".' in e.args[0]:
-                                product_item = error_item.extract_product()
-                                variant_item = error_item.extract_variant()
-
-                                session.merge(product_item)
-                                session.commit()
-
-                                session.merge(variant_item)
-                                session.commit()
-
-                                session.merge(error_item)
+                            # Is this even ever used?
+                            # elif f'(artnr)=({error_item.artnr}) is not present in table "products".' in e.args[0]:
+                            #     product_item = error_item.extract_product()
+                            #     variant_item = error_item.extract_variant()
+                            #
+                            #     session.merge(product_item)
+                            #     session.commit()
+                            #
+                            #     session.merge(variant_item)
+                            #     session.commit()
+                            #
+                            #     session.merge(error_item)
 
                         except Exception as e:
                             logger.warning(f'IntegrityError: {e} \n')
 
-        except Exception as e:
-            logger.warning(f'Unsolvable error on {item}: {e}\n')
+        except Exception as er:
+            logger.warning(f'Unsolvable error on {item}: {er}\n')
             session.rollback()
 
     def insert_in_db(self, file, update_target=None):

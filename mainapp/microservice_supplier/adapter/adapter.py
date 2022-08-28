@@ -5,7 +5,7 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
-from mainapp.microservice_supplier import ALL_EDC_CLASSES,ALL_BIGBUY_CLASSES, Product, Variant
+from mainapp.microservice_supplier import ALL_EDC_CLASSES, ALL_BIGBUY_CLASSES, Product, Variant
 from mainapp.microservice_supplier import BASE_PATH
 
 
@@ -40,13 +40,11 @@ class Adapter:
 
         return class_objects
 
-
-
     # TODO: EDC legacy?
     def get_stock(self) -> List:
         file = self.open_pickle(f"{BASE_PATH}/files/{self.supplier}/cleaned/stock")
 
-        stock_objects = [Variant(e,self.supplier) for e in file]
+        stock_objects = [Variant(e, self.supplier) for e in file]
 
         for stock_object in stock_objects:
             stock_object.stock_update()
@@ -58,7 +56,6 @@ class EdcAdapter(Adapter):
     def __init__(self):
         self.supplier = 'edc'
         self.classes = ALL_EDC_CLASSES
-
 
 
 class BigbuyAdapter(Adapter):

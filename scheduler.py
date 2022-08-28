@@ -65,6 +65,7 @@ def full_setup():
     db = EdcDatabase(connection_type='merge')
     db.add_to_db()
 
+
 # @sched.scheduled_job('cron', day_of_week='mon', hour=3)
 def full_product_update():
     edc = EdcClient()
@@ -159,7 +160,6 @@ def offer_update():
                     Variant.buy_price < 40,
                     func.date(Variant.update_date_stock) == today
                     ).values('ean')
-
 
 
 @sched.scheduled_job('interval', minutes=15)

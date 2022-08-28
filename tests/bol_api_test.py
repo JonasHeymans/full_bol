@@ -7,7 +7,6 @@ from support.logger.logger import Logger
 log = Logger().get_commandline_logger('info')
 
 with DatabaseSession() as session:
-
     api = RetailerAPI(demo=True)
     api.login()
 
@@ -50,4 +49,3 @@ with DatabaseSession() as session:
     api.offers.delete_offer(offer_id)
     api.offers.update_price(offer_id, bundle_prices)
     api.offers.update_stock(offer_id, stock_amount)
-

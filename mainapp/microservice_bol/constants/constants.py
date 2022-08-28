@@ -1,4 +1,6 @@
 import enum
+
+
 class FulfilmentMethod(enum.Enum):
     """
     The fulfilment method. Fulfilled by the retailer (FBR) or fulfilled by
@@ -86,6 +88,7 @@ class ConditionName(enum.Enum):
     REASONABLE = "REASONABLE"
     MODERATE = "MODERATE"
 
+
 class TimeFrameType(enum.Enum):
     REGULAR = 'REGULAR'
     EVENING = 'EVENING'
@@ -93,12 +96,13 @@ class TimeFrameType(enum.Enum):
     SAMEDAY = 'SAMEDAY'
     SUNDAY = 'SUNDAY'
 
+
 class DistributionParty(enum.Enum):
     RETAILER = 'RETAILER'
     BOL = 'BOL'
+
 
 class Salutation(enum.Enum):
     MALE = 'MALE'
     FEMALE = 'FEMALE'
     UNKNOWN = 'UNKNOWN'
-

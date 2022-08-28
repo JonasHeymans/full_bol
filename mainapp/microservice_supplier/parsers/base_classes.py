@@ -38,7 +38,7 @@ class Item():
         shipping_cost = 9.00
 
         sell_price = (purchaseprice + shipping_cost + 1) / (
-                    1 - bol_commission - profit_margin - tax_percentage - return_percentage)
+                1 - bol_commission - profit_margin - tax_percentage - return_percentage)
         rounded_sell_price = math.ceil(sell_price) - 0.01
 
         return rounded_sell_price
@@ -77,7 +77,7 @@ class Product(Base, Item):
     update_date = Column(DateTime)
     name = Column(String(255))
     category = Column(String(255))
-    stock = Column(Integer, nullable=False)
+    stock = Column(Integer)
     purchaseprice = Column(Float)
     sellprice = Column(Float)
 
@@ -105,11 +105,18 @@ class Variant(Base, Item):
         self.purchaseprice = parent.pop('purchaseprice', np.nan)
         self.sellprice = super().calculate_sellprice(self.purchaseprice)
         self.update_date = dt.now()
-        self.stock = parent.pop('stock', None)
-        self.update_date_stock = parent.pop('update_date_stock', None)
+
+        stock = parent.pop('stock', -1)
+        self.stock = stock if stock != np.nan else -1
+        self.update_date_stock = parent.pop('update_date_stock') if self.stock != -1 else dt.now()
 
     def __repr__(self):
-        return f"Variant object with product_id '{self.product_id}', artnr '{self.artnr}', price '{self.sellprice}' enz"
+        return f"Variant object with" \
+               f" product_id '{self.product_id}'," \
+               f" artnr '{self.artnr}'," \
+               f" price '{self.sellprice}'," \
+               f" stock {self.stock}" \
+               f" enz"
 
     supplier = Column(String(50))
     id = Column(Integer)
@@ -128,8 +135,8 @@ class Variant(Base, Item):
         'polymorphic_on': supplier
     }
 
-    def stock_update(self):
-        self.update_date_stock = dt.now()
+    # def stock_update(self):
+    #     self.update_date_stock = dt.now()
 
 # class Price(Base):
 #     __tablename__ = 'prices'

@@ -1,316 +1,319 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <products>
-  <product>
-    <id>32</id>
-    <artnr>05097280000</artnr>
-    <title>XTension Sleeve transparent</title>
-    <description>Penis sleeve with nubs and veins ? extra long (can be cut for a perfect fit). With solid glans to lengthen the penis. Transparent. Outer length approx. 22 cm, ? 3.8-5 cm. Inner length 18 cm, inner ? 3.7 cm. Material: TPE, phthalate-free according to EU Regulation REACH.</description>
-    <casecount>24</casecount>
-    <brand>
-      <id>23</id>
-      <title>You2Toys</title>
-    </brand>
-    <date>03-09-2015</date>
-    <modifydate>21-06-2022</modifydate>
-    <variants>
-      <variant>
-        <id>34990</id>
-        <type></type>
-        <subartnr>05097280000</subartnr>
-        <ean>4024144513727</ean>
-        <stock>Y</stock>
-        <stockestimate>50</stockestimate>
-      </variant>
-    </variants>
-    <price>
-      <currency>EUR</currency>
-      <b2b>12.90</b2b>
-      <b2c>24.99</b2c>
-      <vatnl>21.00</vatnl>
-      <vatde>19.00</vatde>
-      <vatfr>20.00</vatfr>
-      <vatuk>21.00</vatuk>
-      <discount>Y</discount>
-    </price>
-    <categories>
-      <category>
-        <cat>
-          <id>181</id>
-          <title>Toys for Boys</title>
-        </cat>
-        <cat>
-          <id>166</id>
-          <title>Penis Extension</title>
-        </cat>
-      </category>
-    </categories>
-    <measures>
-      <length>21.00</length>
-      <mindiameter>5.00</mindiameter>
-      <innerdiameter>3.50</innerdiameter>
-      <outerdiameter>5.00</outerdiameter>
-      <weight>283</weight>
-      <packing>36x19x5</packing>
-    </measures>
-    <properties>
-      <prop>
-        <propid>84</propid>
-        <property>Extending penis</property>
-        <valueid>359</valueid>
-        <values>
-          <value>
-            <id>359</id>
-            <title>Yes</title>
-          </value>
-        </values>
-        <value>Yes</value>
-      </prop>
-      <prop>
-        <propid>83</propid>
-        <property>External structure</property>
-        <valueid>356</valueid>
-        <values>
-          <value>
-            <id>356</id>
-            <title>Nubs</title>
-          </value>
-          <value>
-            <id>357</id>
-            <title>Ribbed</title>
-          </value>
-        </values>
-        <value>Nubs</value>
-      </prop>
-      <prop>
-        <propid>26</propid>
-        <property>Waterproof</property>
-        <valueid>168</valueid>
-        <values>
-          <value>
-            <id>168</id>
-            <title>Yes</title>
-          </value>
-        </values>
-        <value>Yes</value>
-      </prop>
-      <prop>
-        <propid>54</propid>
-        <property>Total rating</property>
-        <valueid>288</valueid>
-        <values>
-          <value>
-            <id>288</id>
-            <title>4</title>
-          </value>
-        </values>
-        <value>4</value>
-      </prop>
-      <prop>
-        <propid>40</propid>
-        <property>Suitable for penetration</property>
-        <valueid>198</valueid>
-        <values>
-          <value>
-            <id>198</id>
-            <title>Yes</title>
-          </value>
-        </values>
-        <value>Yes</value>
-      </prop>
-      <prop>
-        <propid>128</propid>
-        <property>Suitable for couples</property>
-        <valueid>710</valueid>
-        <values>
-          <value>
-            <id>710</id>
-            <title>Men + Men</title>
-          </value>
-          <value>
-            <id>712</id>
-            <title>Men + Woman</title>
-          </value>
-        </values>
-        <value>Men + Men</value>
-      </prop>
-      <prop>
-        <propid>108</propid>
-        <property>Stimulation</property>
-        <valueid>773</valueid>
-        <values>
-          <value>
-            <id>773</id>
-            <title>Penis stimulation</title>
-          </value>
-        </values>
-        <value>Penis stimulation</value>
-      </prop>
-      <prop>
-        <propid>144</propid>
-        <property>User level</property>
-        <valueid>796</valueid>
-        <values>
-          <value>
-            <id>796</id>
-            <title>More Experienced</title>
-          </value>
-        </values>
-        <value>More Experienced</value>
-      </prop>
-      <prop>
-        <propid>71</propid>
-        <property>Warranty Type</property>
-        <valueid>328</valueid>
-        <values>
-          <value>
-            <id>328</id>
-            <title>Good Warranty Service</title>
-          </value>
-        </values>
-        <value>Good Warranty Service</value>
-      </prop>
-      <prop>
-        <propid>41</propid>
-        <property>Suitable for</property>
-        <valueid>230</valueid>
-        <values>
-          <value>
-            <id>230</id>
-            <title>Men</title>
-          </value>
-        </values>
-        <value>Men</value>
-      </prop>
-      <prop>
-        <propid>25</propid>
-        <property>Colour</property>
-        <valueid>215</valueid>
-        <values>
-          <value>
-            <id>215</id>
-            <title>Transparent</title>
-          </value>
-        </values>
-        <value>Transparent</value>
-      </prop>
-      <prop>
-        <propid>70</propid>
-        <property>Warranty</property>
-        <valueid>326</valueid>
-        <values>
-          <value>
-            <id>326</id>
-            <title>Yes</title>
-          </value>
-        </values>
-        <value>Yes</value>
-      </prop>
-      <prop>
-        <propid>43</propid>
-        <property>Packing</property>
-        <valueid>243</valueid>
-        <values>
-          <value>
-            <id>243</id>
-            <title>Industrial packaging (Blister)</title>
-          </value>
-        </values>
-        <value>Industrial packaging (Blister)</value>
-      </prop>
-      <prop>
-        <propid>63</propid>
-        <property>Elastic</property>
-        <valueid>308</valueid>
-        <values>
-          <value>
-            <id>308</id>
-            <title>Yes</title>
-          </value>
-        </values>
-        <value>Yes</value>
-      </prop>
-      <prop>
-        <propid>137</propid>
-        <property>Inner diameter</property>
-        <values>
-          <value>
-            <unit>mm</unit>
-            <magnitude>35</magnitude>
-          </value>
-        </values>
-        <value>35</value>
-      </prop>
-      <prop>
-        <propid>132</propid>
-        <property>Length</property>
-        <values>
-          <value>
-            <unit>mm</unit>
-            <magnitude>210</magnitude>
-          </value>
-        </values>
-        <value>210</value>
-      </prop>
-      <prop>
-        <propid>138</propid>
-        <property>Outer diameter</property>
-        <values>
-          <value>
-            <unit>mm</unit>
-            <magnitude>50</magnitude>
-          </value>
-        </values>
-        <value>50</value>
-      </prop>
-      <prop>
-        <propid>136</propid>
-        <property>Minimum diameter</property>
-        <values>
-          <value>
-            <unit>mm</unit>
-            <magnitude>50</magnitude>
-          </value>
-        </values>
-        <value>50</value>
-      </prop>
-    </properties>
-    <material>TPE</material>
-    <popularity>1</popularity>
-    <pics>
-      <pic>https://cdn.edc.nl/500/05097280000.jpg</pic>
-      <pic>https://cdn.edc.nl/500/05097280000_2.jpg</pic>
-      <pic>https://cdn.edc.nl/500/05097280000_3.jpg</pic>
-      <pic>https://cdn.edc.nl/500/05097280000_4.jpg</pic>
-    </pics>
-    <country>CN</country>
-    <bulletpoints>
-      <bp>Transparent model </bp>
-      <bp>Stimulating structure </bp>
-      <bp>Adaptable model</bp>
-    </bulletpoints>
-    <restrictions>
-      <germany>N</germany>
-      <platform>N</platform>
-    </restrictions>
-    <hscode>90191090</hscode>
-    <battery>
-      <required>N</required>
-    </battery>
-    <new_categories>
-      <category>
-        <cats>
-          <id>32857</id>
-          <title>Sex Toys</title>
-        </cats>
-        <cats>
-          <id>32959</id>
-          <title>Penis Pumps &amp; Penis Sleeves</title>
-        </cats>
-        <cats>
-          <id>32392</id>
-          <title>Penis Sleeves</title>
-        </cats>
-      </category>
-    </new_categories>
-  </product>
+    <product>
+        <id>32</id>
+        <artnr>05097280000</artnr>
+        <title>XTension Sleeve transparent</title>
+        <description>Penis sleeve with nubs and veins ? extra long (can be cut for a perfect fit). With solid glans to
+            lengthen the penis. Transparent. Outer length approx. 22 cm, ? 3.8-5 cm. Inner length 18 cm, inner ? 3.7 cm.
+            Material: TPE, phthalate-free according to EU Regulation REACH.
+        </description>
+        <casecount>24</casecount>
+        <brand>
+            <id>23</id>
+            <title>You2Toys</title>
+        </brand>
+        <date>03-09-2015</date>
+        <modifydate>21-06-2022</modifydate>
+        <variants>
+            <variant>
+                <id>34990</id>
+                <type></type>
+                <subartnr>05097280000</subartnr>
+                <ean>4024144513727</ean>
+                <stock>Y</stock>
+                <stockestimate>50</stockestimate>
+            </variant>
+        </variants>
+        <price>
+            <currency>EUR</currency>
+            <b2b>12.90</b2b>
+            <b2c>24.99</b2c>
+            <vatnl>21.00</vatnl>
+            <vatde>19.00</vatde>
+            <vatfr>20.00</vatfr>
+            <vatuk>21.00</vatuk>
+            <discount>Y</discount>
+        </price>
+        <categories>
+            <category>
+                <cat>
+                    <id>181</id>
+                    <title>Toys for Boys</title>
+                </cat>
+                <cat>
+                    <id>166</id>
+                    <title>Penis Extension</title>
+                </cat>
+            </category>
+        </categories>
+        <measures>
+            <length>21.00</length>
+            <mindiameter>5.00</mindiameter>
+            <innerdiameter>3.50</innerdiameter>
+            <outerdiameter>5.00</outerdiameter>
+            <weight>283</weight>
+            <packing>36x19x5</packing>
+        </measures>
+        <properties>
+            <prop>
+                <propid>84</propid>
+                <property>Extending penis</property>
+                <valueid>359</valueid>
+                <values>
+                    <value>
+                        <id>359</id>
+                        <title>Yes</title>
+                    </value>
+                </values>
+                <value>Yes</value>
+            </prop>
+            <prop>
+                <propid>83</propid>
+                <property>External structure</property>
+                <valueid>356</valueid>
+                <values>
+                    <value>
+                        <id>356</id>
+                        <title>Nubs</title>
+                    </value>
+                    <value>
+                        <id>357</id>
+                        <title>Ribbed</title>
+                    </value>
+                </values>
+                <value>Nubs</value>
+            </prop>
+            <prop>
+                <propid>26</propid>
+                <property>Waterproof</property>
+                <valueid>168</valueid>
+                <values>
+                    <value>
+                        <id>168</id>
+                        <title>Yes</title>
+                    </value>
+                </values>
+                <value>Yes</value>
+            </prop>
+            <prop>
+                <propid>54</propid>
+                <property>Total rating</property>
+                <valueid>288</valueid>
+                <values>
+                    <value>
+                        <id>288</id>
+                        <title>4</title>
+                    </value>
+                </values>
+                <value>4</value>
+            </prop>
+            <prop>
+                <propid>40</propid>
+                <property>Suitable for penetration</property>
+                <valueid>198</valueid>
+                <values>
+                    <value>
+                        <id>198</id>
+                        <title>Yes</title>
+                    </value>
+                </values>
+                <value>Yes</value>
+            </prop>
+            <prop>
+                <propid>128</propid>
+                <property>Suitable for couples</property>
+                <valueid>710</valueid>
+                <values>
+                    <value>
+                        <id>710</id>
+                        <title>Men + Men</title>
+                    </value>
+                    <value>
+                        <id>712</id>
+                        <title>Men + Woman</title>
+                    </value>
+                </values>
+                <value>Men + Men</value>
+            </prop>
+            <prop>
+                <propid>108</propid>
+                <property>Stimulation</property>
+                <valueid>773</valueid>
+                <values>
+                    <value>
+                        <id>773</id>
+                        <title>Penis stimulation</title>
+                    </value>
+                </values>
+                <value>Penis stimulation</value>
+            </prop>
+            <prop>
+                <propid>144</propid>
+                <property>User level</property>
+                <valueid>796</valueid>
+                <values>
+                    <value>
+                        <id>796</id>
+                        <title>More Experienced</title>
+                    </value>
+                </values>
+                <value>More Experienced</value>
+            </prop>
+            <prop>
+                <propid>71</propid>
+                <property>Warranty Type</property>
+                <valueid>328</valueid>
+                <values>
+                    <value>
+                        <id>328</id>
+                        <title>Good Warranty Service</title>
+                    </value>
+                </values>
+                <value>Good Warranty Service</value>
+            </prop>
+            <prop>
+                <propid>41</propid>
+                <property>Suitable for</property>
+                <valueid>230</valueid>
+                <values>
+                    <value>
+                        <id>230</id>
+                        <title>Men</title>
+                    </value>
+                </values>
+                <value>Men</value>
+            </prop>
+            <prop>
+                <propid>25</propid>
+                <property>Colour</property>
+                <valueid>215</valueid>
+                <values>
+                    <value>
+                        <id>215</id>
+                        <title>Transparent</title>
+                    </value>
+                </values>
+                <value>Transparent</value>
+            </prop>
+            <prop>
+                <propid>70</propid>
+                <property>Warranty</property>
+                <valueid>326</valueid>
+                <values>
+                    <value>
+                        <id>326</id>
+                        <title>Yes</title>
+                    </value>
+                </values>
+                <value>Yes</value>
+            </prop>
+            <prop>
+                <propid>43</propid>
+                <property>Packing</property>
+                <valueid>243</valueid>
+                <values>
+                    <value>
+                        <id>243</id>
+                        <title>Industrial packaging (Blister)</title>
+                    </value>
+                </values>
+                <value>Industrial packaging (Blister)</value>
+            </prop>
+            <prop>
+                <propid>63</propid>
+                <property>Elastic</property>
+                <valueid>308</valueid>
+                <values>
+                    <value>
+                        <id>308</id>
+                        <title>Yes</title>
+                    </value>
+                </values>
+                <value>Yes</value>
+            </prop>
+            <prop>
+                <propid>137</propid>
+                <property>Inner diameter</property>
+                <values>
+                    <value>
+                        <unit>mm</unit>
+                        <magnitude>35</magnitude>
+                    </value>
+                </values>
+                <value>35</value>
+            </prop>
+            <prop>
+                <propid>132</propid>
+                <property>Length</property>
+                <values>
+                    <value>
+                        <unit>mm</unit>
+                        <magnitude>210</magnitude>
+                    </value>
+                </values>
+                <value>210</value>
+            </prop>
+            <prop>
+                <propid>138</propid>
+                <property>Outer diameter</property>
+                <values>
+                    <value>
+                        <unit>mm</unit>
+                        <magnitude>50</magnitude>
+                    </value>
+                </values>
+                <value>50</value>
+            </prop>
+            <prop>
+                <propid>136</propid>
+                <property>Minimum diameter</property>
+                <values>
+                    <value>
+                        <unit>mm</unit>
+                        <magnitude>50</magnitude>
+                    </value>
+                </values>
+                <value>50</value>
+            </prop>
+        </properties>
+        <material>TPE</material>
+        <popularity>1</popularity>
+        <pics>
+            <pic>https://cdn.edc.nl/500/05097280000.jpg</pic>
+            <pic>https://cdn.edc.nl/500/05097280000_2.jpg</pic>
+            <pic>https://cdn.edc.nl/500/05097280000_3.jpg</pic>
+            <pic>https://cdn.edc.nl/500/05097280000_4.jpg</pic>
+        </pics>
+        <country>CN</country>
+        <bulletpoints>
+            <bp>Transparent model</bp>
+            <bp>Stimulating structure</bp>
+            <bp>Adaptable model</bp>
+        </bulletpoints>
+        <restrictions>
+            <germany>N</germany>
+            <platform>N</platform>
+        </restrictions>
+        <hscode>90191090</hscode>
+        <battery>
+            <required>N</required>
+        </battery>
+        <new_categories>
+            <category>
+                <cats>
+                    <id>32857</id>
+                    <title>Sex Toys</title>
+                </cats>
+                <cats>
+                    <id>32959</id>
+                    <title>Penis Pumps &amp; Penis Sleeves</title>
+                </cats>
+                <cats>
+                    <id>32392</id>
+                    <title>Penis Sleeves</title>
+                </cats>
+            </category>
+        </new_categories>
+    </product>
 </products>

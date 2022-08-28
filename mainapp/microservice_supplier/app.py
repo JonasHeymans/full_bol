@@ -4,5 +4,3 @@
 
 # TODO check- and change datatypes. Eg; Bool instead of 'Y'/'N'
 # TODO check fully blank columns. Eg. artnr and update_date for prices
-
-

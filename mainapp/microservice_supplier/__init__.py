@@ -11,14 +11,12 @@ EDC_BASE_URL = 'http://api.edc.nl/'
 BB_BASE_URL = 'https://api.bigbuy.eu/'
 
 ALL_EDC_CLASS_NAMES = ['Product', 'Variant', "Price", "Brand", 'Category', 'Measures', 'Property', 'Bulletpoint',
-                       'Pic' ]
+                       'Pic']
 
 ALL_EDC_CLASSES = {"Product": EdcProduct,
                    "Variant": EdcVariant}
 
 ALL_BIGBUY_CLASSES = {"Product": BigbuyProduct,
-                   "Variant": BigbuyVariant}
+                      "Variant": BigbuyVariant}
 
 BASE_PATH = 'mainapp/microservice_supplier'
-
-

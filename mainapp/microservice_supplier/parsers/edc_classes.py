@@ -22,7 +22,6 @@ class EdcVariant(Variant):
         'polymorphic_identity': f'{supplier}',
     }
 
-
 # class EdcPrice(Price):
 #
 #     def __init__(self, parent):

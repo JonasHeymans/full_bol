@@ -103,7 +103,6 @@ class BillingDetails(Model):
         pass
 
 
-
 class BundlePrice(Model):
     class Meta:
         quantity = DecimalField()
@@ -187,13 +186,13 @@ class OrderItem(Model):
         latestDeliveryDate = DateField()
         expiryDate = DateField()
 
+
 class OrderItems(ModelList):
     class Meta:
         item_type = OrderItem
 
 
 class Order(Model):
-
     class Meta:
         orderPlacedDateTime = DateTimeField()
         customerDetails = ModelField(CustomerDetails)

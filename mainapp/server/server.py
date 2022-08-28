@@ -1,16 +1,16 @@
 from flask import Flask, jsonify, request
 import xmltodict
 
-
 from support.database.database import EdcDatabase
-
 
 # create the Flask mainapp
 app = Flask(__name__)
 
+
 @app.route("/")
 def home_view():
-        return "<h1>Welcome</h1>"
+    return "<h1>Welcome</h1>"
+
 
 @app.route("/edc_shipment", methods=['POST'])
 def main():
@@ -26,8 +26,6 @@ def main():
         dct['shipper'] = content_dict['shipper']
         dct['status'] = content_dict['status']
 
-
-
         db = EdcDatabase(connection_type='fill')
         db.add_shipment(dct)
 
@@ -41,4 +39,3 @@ def main():
         resp = jsonify(success=False)
 
         return resp
-

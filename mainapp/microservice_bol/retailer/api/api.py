@@ -199,10 +199,7 @@ class OfferMethods(MethodGroup):
         resp = self.request("POST", path='export', json=payload)
         logger.info(f'Getting Offers')
 
-
         ProcessStatus.parse(self.api, resp.text)
-
-
 
     def update_offer(
             self,
