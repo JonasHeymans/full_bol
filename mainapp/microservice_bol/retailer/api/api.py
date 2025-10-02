@@ -1,7 +1,8 @@
 import logging
 import os
-
+import time
 import requests
+from requests.exceptions import HTTPError
 
 from mainapp.microservice_bol.constants.constants import DeliveryCode, ConditionName
 from mainapp.microservice_bol.retailer.models.models import (
@@ -11,6 +12,7 @@ from mainapp.microservice_bol.retailer.models.models import (
     Order,
     Orders,
     Offer,
+    Offers,
     ProcessStatus,
     ProcessStatuses,
     Shipment,
@@ -32,7 +34,11 @@ class MethodGroup(object):
         if not uri.startswith("/"):
             base = "retailer-demo" if self.api.demo else "retailer"
             uri = f'/{base}/{self.group}{(f"/{path}" if path else "")}'
-        return self.api.request(method, uri, params=params, **kwargs)
+        try:
+            return self.api.request(method, uri, params=params, **kwargs)
+
+        except HTTPError as e:
+            logger.exception(e)
 
 
 class OrderMethods(MethodGroup):
@@ -132,14 +138,14 @@ class OfferMethods(MethodGroup):
                      bundle_prices,
                      stock_amount,
                      stock_managed_by_retailer=False,
-                     condition_name=ConditionName.NEW,
+                     condition_name=ConditionName.NEW.value,
                      condition_category=None,
                      condition_comment=None,
                      reference_code=None,
                      on_hold_by_retailer=None,
                      unknown_product_title=None,
                      fulfilment_type='FBR',
-                     fulfilment_delivery_code=DeliveryCode.d_3_to_5d,
+                     fulfilment_delivery_code=DeliveryCode.d_4_8.value,
                      fulfilment_pick_up_points=None,
 
                      ):
@@ -180,7 +186,7 @@ class OfferMethods(MethodGroup):
                 "pickUpPoints"
             ] = fulfilment_pick_up_points
 
-        resp = self.request("POST", path="")
+        resp = self.request("POST", path="", json=payload)
 
         logger.info(f'Created New Offer with EAN {ean}, payload = {payload}')
 
@@ -208,7 +214,7 @@ class OfferMethods(MethodGroup):
             on_hold_by_retailer=None,
             unknown_product_title=None,
             fulfilment_type='FBR',
-            fulfilment_delivery_code=DeliveryCode.d_3_to_5d,
+            fulfilment_delivery_code=DeliveryCode.d_4_8.value,
             fulfilment_pick_up_points=None,
     ):
 
@@ -268,6 +274,20 @@ class OfferMethods(MethodGroup):
 
         return ProcessStatus.parse(self.api, resp.text)
 
+    def get_export_file(self):
+        payload = {'format': 'CSV'}
+
+        resp = self.request("POST", path=f"export", json=payload)
+
+        ps_response = ProcessStatus.parse(self.api, resp.text)
+
+        psm = ProcessStatusMethods(self.api)
+        entityid = psm.get_entityId(ps_response.processStatusId)
+
+        export = self.request("GET", path=f"export/{entityid}")
+
+        return Offers.parse(self.api, export.text)
+
 
 class ProcessStatusMethods(MethodGroup):
     def __init__(self, api):
@@ -281,6 +301,14 @@ class ProcessStatusMethods(MethodGroup):
 
         logger.info(f'Got ProcessStatus: {params}')
         return ProcessStatuses.parse(self.api, resp.text)
+
+    def get_entityId(self, processStatusId):
+        time.sleep(3)
+        resp = self.request("GET", path=f"{processStatusId}")
+        ps_response = ProcessStatus.parse(self.api, resp.text)
+        time.sleep(1)
+
+        return ps_response.entityId
 
 
 class InvoiceMethods(MethodGroup):
@@ -318,7 +346,7 @@ class RetailerAPI(object):
             # test=False,
             timeout=None,
             session=None,
-            demo=True,
+            demo=False,
             api_url=None,
             login_url=None,
             refresh_token=None,
@@ -405,7 +433,15 @@ class RetailerAPI(object):
             # Reference:
             #   https://api.bol.com/retailer/public/conventions/index.html
             request_kwargs["headers"].update({
-                "content-type": "application/vnd.retailer.v6+json"
+                "Content-Type": "application/vnd.retailer.v6+json"
+            })
+
+        if ('offers/export' in uri) & (method == 'GET'):
+            request_kwargs["headers"] = {}
+
+            request_kwargs["headers"].update({
+                'Accept': 'application/vnd.retailer.v6+csv',
+                'Content-Type': 'application/x-www-form-urlencoded'
             })
 
         resp = self.session.request(**request_kwargs)

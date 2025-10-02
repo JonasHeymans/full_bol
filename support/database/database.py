@@ -1,13 +1,15 @@
 import logging
 import os
 import time
-
+from datetime import datetime as dt
 import numpy as np
+
+import sqlalchemy
 from sqlalchemy.exc import IntegrityError
 
 from mainapp.microservice_bol.adapter.adapter import BolAdapter
 from mainapp.microservice_bol.parsers.bol_classes import Base as BolBase, Order, Shipment, shipmentDetails, OrderItem, \
-    billingDetails
+    billingDetails, Offer
 from mainapp.microservice_both.adapter.adapter import OrderAdapter
 from mainapp.microservice_both.parsers.edc_order import Base as OrderBase, EdcShipment
 from mainapp.microservice_supplier import BASE_PATH, ALL_EDC_CLASSES, ALL_BIGBUY_CLASSES
@@ -17,6 +19,7 @@ from support.database.database_connection import DatabaseSession
 
 logger = logging.getLogger('microservice_supplier.database')
 
+today = dt.now().date()
 
 def split_list(lst, chunk_size):
     return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
@@ -109,7 +112,8 @@ class Database:
                           'shipmentdetails': [shipmentDetails, 'orderId'],
                           'orderitems': [OrderItem, 'orderItemId'],
                           'billingdetails': [billingDetails, 'orderId'],
-                          'edcshipment': [EdcShipment, 'ordernumber']}
+                          'edcshipment': [EdcShipment, 'ordernumber'],
+                          'offer': [Offer, 'ean'],}
 
         update_target_class = update_targets[update_target][0]
         update_target_id = getattr(update_target_class, update_targets[update_target][1])
@@ -123,6 +127,7 @@ class Database:
 
         logger.info(
             f'Successfully inserted {update_target} to Database in {(time.time() - starttime) / 60 :.2f} minutes!')
+
 
 
 class SupplierDatabase(Database):
@@ -206,16 +211,20 @@ class BigbuyDatabase(SupplierDatabase):
         filenames = self.filenames if args == () else args
         super().add_to_db(filenames)
 
+    def get_eligible_offers(self):
+        pass
+
+
+
 
 class BolDatabase(Database):
     def __init__(self, connection_type):
         super().__init__(connection_type)
 
-    def __push_to_db(self, classes, order_id=None):
-        logger.debug('Started Pushing Order to db')
-        full_starttime = time.time()
 
-        logger.debug(f"Pushing {classes}")
+    def __push_order(self, classes, order_id=None):
+        logger.debug(f'Started Pushing {classes} to db')
+        full_starttime = time.time()
 
         for cls in classes:
             bopr = BolAdapter()
@@ -230,22 +239,25 @@ class BolDatabase(Database):
 
     def push_order_to_db(self, order_id):
         classes = ['Order', 'shipmentDetails', 'orderItems', 'billingDetails']
-        self.__push_to_db(classes, order_id)
+        self.__push_order(classes, order_id)
 
     def push_orders_to_db(self):
         classes = ['Order', 'orderItems']
-        self.__push_to_db(classes)
+        self.__push_order(classes)
 
-    def push_offers_to_bol(self):
-        # get products from EDC db
+    def push_offers_to_db(self, offers):
+        logger.debug(f'Started Pushing Offers to db')
+        full_starttime = time.time()
+        bopr = BolAdapter()
+
+        file = bopr.convert_offers(offers)
+
+        self.insert_in_db(file, update_target='offer')
+
+        logger.debug(f'Successfully pushed Offers to Database in {(time.time() - full_starttime) / 60 :.2f} minutes!')
+
+    #Gets offers from the database that are currently online on bol.com
+    def get_open_offers(self, classname):
         with DatabaseSession() as session:
-            pass
+            return session.query(classname).filter(sqlalchemy.func.date(Offer.update_date) >= today).all()
 
-        # Convert to Offer object and put in db
-        # __push_to_db
-
-        # Push Offer objects to bol.com
-
-        # Remove offers that we do not sell any more from bol
-        ## API call to bol.com
-        ## Update this also in our own db, with a bool "online"

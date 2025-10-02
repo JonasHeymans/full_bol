@@ -1,6 +1,7 @@
 import logging
 
 from mainapp.microservice_bol.parsers.bol_classes import Order, shipmentDetails, OrderItem, billingDetails
+from mainapp.microservice_bol.parsers.bol_classes import Offer
 from mainapp.microservice_bol.retailer.api.api import RetailerAPI
 
 logger = logging.getLogger(__name__)
@@ -9,6 +10,9 @@ logger = logging.getLogger(__name__)
 class BolAdapter:
     def __init__(self):
         self.api = RetailerAPI()
+
+    def convert_offers(self, offers):
+        return [Offer(offer.raw_data) for offer in offers]
 
     def convert_item(self, classname: str, order_id=None):
         self.api.login()

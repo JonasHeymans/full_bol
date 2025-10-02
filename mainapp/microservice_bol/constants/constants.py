@@ -61,23 +61,23 @@ class CancellationReasonCode(enum.Enum):
 
 
 class DeliveryCode(enum.Enum):
-    d_24uurs_23 = "24uurs-23"
-    d_24uurs_22 = "24uurs-22"
-    d_24uurs_21 = "24uurs-21"
-    d_24uurs_20 = "24uurs-20"
-    d_24uurs_19 = "24uurs-19"
-    d_24uurs_18 = "24uurs-18"
-    d_24uurs_17 = "24uurs-17"
-    d_24uurs_16 = "24uurs-16"
-    d_24uurs_15 = "24uurs-15"
-    d_24uurs_14 = "24uurs-14"
-    d_24uurs_13 = "24uurs-13"
-    d_24uurs_11 = "24uurs-12"
-    d_1_to_2d = "1-2d"
-    d_2_to_3d = "2-3d"
-    d_3_to_5d = "3-5d"
-    d_4_to_8d = "4-8d"
-    d_1_to_8d = "1-8d"
+    d_24uurs23 = '24uurs-23'
+    d_24uurs_22 = '24uurs-22'
+    d_24uurs_21 = '24uurs-21'
+    d_24uurs_20 = '24uurs-20'
+    d_24uurs_19 = '24uurs-19'
+    d_24uurs_18 = '24uurs-18'
+    d_24uurs_17 = '24uurs-17'
+    d_24uurs_16 = '24uurs-16'
+    d_24uurs_15 = '24uurs-15'
+    d_24uurs_14 = '24uurs-14'
+    d_24uurs_13 = '24uurs-13'
+    d_24uurs_11 = '24uurs-12'
+    d_1_2 = '1-2d'
+    d_2_3 = '2-3d'
+    d_3_5 = '3-5d'
+    d_4_8 = '4-8d'
+    d_1_8 = '1-8d'
     d_mijn_leverbelofte = '"MijnLeverbelofte"'
 
 

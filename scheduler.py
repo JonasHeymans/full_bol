@@ -5,10 +5,10 @@ from sqlalchemy import func
 
 from mainapp.microservice_bol.retailer.api.api import RetailerAPI
 from mainapp.microservice_both.parsers.edc_order import EdcShipment
-from mainapp.microservice_supplier.api.supplier import EdcClient
-from mainapp.microservice_supplier.parsers.converter import EdcConverter
+from mainapp.microservice_supplier.api.supplier import BigbuyClient
+from mainapp.microservice_supplier.parsers.converter import BigbuyConverter
 from mainapp.microservice_supplier.parsers.base_classes import Product, Variant
-from support.database.database import BolDatabase, EdcDatabase
+from support.database.database import BolDatabase, BigbuyDatabase
 from support.database.database_connection import DatabaseSession
 from support.logger.logger import Logger
 
@@ -56,73 +56,39 @@ def up_reminder():
 # EDC methods
 @sched.scheduled_job('cron', hour=3)
 def full_setup():
-    edc = EdcClient()
-    edc.download()
+    bibu = BigbuyClient()
+    bibu.download()
 
-    con = EdcConverter()
+    con = BigbuyConverter()
     con.initial_convert()
 
-    db = EdcDatabase(connection_type='merge')
+    db = BigbuyDatabase(connection_type='merge')
     db.add_to_db()
 
 
 # @sched.scheduled_job('cron', day_of_week='mon', hour=3)
 def full_product_update():
-    edc = EdcClient()
-    edc.download('full')
-
-    con = EdcConverter()
-    con.initial_convert('full')
-
-    db = EdcDatabase(connection_type='merge')
-    db.add_to_db()
-
+    pass
     # TODO: bol-side implementation
 
 
 # @sched.scheduled_job('cron', day_of_week='sat', hour=3)
 def new_product_update():
-    edc = EdcClient()
-    edc.download('new')
-
-    con = EdcConverter()
-    con.initial_convert('new')
-
-    db = EdcDatabase(connection_type='merge')
-    db.add_to_db('new')
-
-    # Maybe I don't really need this here, but is not resource intensive so YOLO
-    edc.download_discounts()
-    db.add_discounts()
+    pass
 
     # TODO: bol-side implementation
 
 
 @sched.scheduled_job('cron', minute=30)
 def stock_update():
-    edc = EdcClient()
-    edc.download_stock()
-
-    con = Converter()
-    con.initial_convert('stock')
-
-    db = EdcDatabase(connection_type='merge')
-    db.add_stock()
+    pass
 
     # TODO: bol-side implementation
 
 
 @sched.scheduled_job('cron', minute=00)
 def update_price():
-    edc = EdcClient()
-    edc.download_prices('full')
-    edc.download_prices('update')
-
-    db = EdcDatabase(connection_type='merge')
-
-    # Setup is probably not necessary here but yolo
-    db.add_full_prices()
-    db.add_new_prices()
+    pass
 
     # TODO: bol-side implementation
 
@@ -143,23 +109,21 @@ def order_update():
 
 def offer_update():
     # Get bol offers
-    api = RetailerAPI()
+    api = RetailerAPI(demo=False)
     api.login()
-    api.offers.list()
-    api.process_status.get()
+    current_offers = api.offers.list()
+
 
     # Get offers from db
     with DatabaseSession() as session:
         today = dt.datetime.today().date()
-        offers = session.query(Variant) \
-            .join(Product, Variant.artnr == Product.artnr) \
-            .join(Variant, Product.product_id == Variant.product_id) \
-            .filter(Product.restrictions_platform == 'N',
-                    Variant.stockestimate > 3,
-                    Variant.stock == 'Y',
-                    Variant.buy_price < 40,
+        new_offers = session.query(Variant) \
+            .join(Product, Product.product_id == Variant.product_id) \
+            .filter(Variant.stock > 5,
+                    Variant.sellprice < 100,
                     func.date(Variant.update_date_stock) == today
-                    ).values('ean')
+                    ).all()
+        print(new_offers)
 
 
 @sched.scheduled_job('interval', minutes=15)

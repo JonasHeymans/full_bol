@@ -1,3 +1,5 @@
+import logging
+from _datetime import datetime as dt
 from sqlalchemy import Column, Integer, String, TEXT, Boolean, DateTime, Date, ForeignKey, BIGINT, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -19,9 +21,13 @@ class Item:
 
                     return child[f'{to_extract}']
                 else:
-                    getattr(self.parent, to_extract)
+                    return getattr(self.parent, f'{to_extract}')
             else:
-                return self.parent[f'{to_extract}']
+                if type(self.parent) == dict:
+                    return self.parent[f'{to_extract}']
+                else:
+                    return getattr(self.parent, f'{to_extract}')
+
         except:
             return None
 
@@ -289,25 +295,38 @@ class Offer(Base, Item):
         super().__init__()
         self.parent = parent
 
-        self.ean = self.extract('ean')
-        self.condition = self.extract('condition')
-        self.reference = self.extract('reference')
-        self.onHoldByRetailer = self.extract('onHoldByRetailer')
-        self.stockamount = self.extract('stockamount')
+        self.ean = int(self.extract('ean'))
+        self.condition = self.extract('conditionName')
+        self.reference = self.extract('referenceCode')
+        self.onHoldByRetailer = bool(self.extract('onHoldByRetailer'))
+        self.stockamount = self.extract('stockAmount')
         self.managedByRetailer = True
-        self.fulfilmentmethod = self.extract('fulfilmentmethod')
-        self.deliverycode = self.extract('deliverycode')
+        self.fulfilmentmethod = self.extract('fulfilmentType')
+        self.bol_id = self.extract('offerId')
+
+        deliverycode = self.extract('fulfilmentDeliveryCode')
+        self.deliverycode = self.convert_deliverycode(deliverycode)
+
+        self.mutationDateTime = self.extract('mutationDateTime')
+        self.update_date = dt.now()
 
     ean = Column(BIGINT, primary_key=True)
     condition = Column(Enum(ConditionName))
-    reference = Column(String(10))
+    reference = Column(String(255))
     onHoldByRetailer = Column(Boolean)
     stockamount = Column(Integer)
     managedByRetailer = Column(Boolean)
     fulfilmentmethod = Column(Enum(FulfilmentMethod))
     deliverycode = Column(Enum(DeliveryCode))
+    bol_id = Column(String(255))
+    update_date = Column(DateTime)
+    mutationDateTime = Column(DateTime)
 
     prices = relationship("Price", back_populates='offer')
+
+    def convert_deliverycode(self, deliverycode):
+        return 'd_' + deliverycode.replace('-', '_').replace('d', '')
+
 
 
 class Price(Base, Item):

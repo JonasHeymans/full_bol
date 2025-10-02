@@ -1,4 +1,5 @@
 import json
+import csv
 import logging
 import sys
 from datetime import date
@@ -21,6 +22,14 @@ def _is_str(v):
 
 def parse_json(content):
     return json.loads(content, parse_float=Decimal)
+
+
+def parse_csv(content):
+    lst = [x for x in csv.reader(content.splitlines(), delimiter=',')]
+    keys = lst[0]
+    lst = lst[1:]
+
+    return {'offers': [dict(zip(keys, l)) for l in lst]}
 
 
 class Field(object):
@@ -64,9 +73,13 @@ class BaseModel(object):
     @classmethod
     def parse(cls, api, content):
         m = cls()
+
         if _is_str(content):
+            if not content.startswith("{"):
+                m.raw_data = parse_csv(content)
+            else:
+                m.raw_data = parse_json(content)
             m.raw_content = content
-            m.raw_data = parse_json(content)
         else:
             m.raw_content = None
             m.raw_data = content
@@ -213,6 +226,12 @@ class Offer(Model):
         store = ModelField(Store)
         condition = ModelField(Condition)
         notPublishableReasons = ModelField(NotPublishableReasons)
+
+
+class Offers(ModelList):
+    class Meta:
+        item_type = Offer
+        items_key = "offers"
 
 
 class ShipmentItem(Model):

@@ -16,15 +16,6 @@ class BaseClient:
         self.supplier = supplier
         self.api_key = api_key
 
-    def get_startpage(self, name):
-        path = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}/'
-        files = [file.strip('.json').split('_') for file in os.listdir(path) if file.endswith('.json')]
-        timestamps = {file[1]: file[2] for file in files}
-
-        startpage = int(max(timestamps)) - 9
-
-        return startpage if startpage >= 0 else 0
-
     def send_request(self, name, url, params):
         logger.debug(f'Sending request for {name}')
 
@@ -42,17 +33,14 @@ class BaseClient:
         return request.text, request.status_code
 
     def save_to_feeds(self, file, name, page, filetype='xml'):
-        current_epoch = int(time.time())
         if file:
             filename = f'{name}_{str(page).zfill(2)}'
-            raw_filename = f'{filename}_{current_epoch}.{filetype}'
+            raw_filename = f'{filename}.{filetype}'
             logger.debug(f'Starting saving of {filetype}')
             path = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}/{raw_filename}'
             with open(path, 'w') as f:
                 f.write(file)
                 logger.info(f"Successfully saved {filename}")
-
-            self.delete_old_file(filename)
 
     def get_file(self, name, url, params):
         if params is None:
@@ -60,8 +48,6 @@ class BaseClient:
 
 
         elif ('pageSize' in params):
-            if 'page' not in params:
-                params['page'] = self.get_startpage(name)
 
             response, status_code = self.send_request(name, url, params=params)
 
@@ -73,20 +59,6 @@ class BaseClient:
 
         return response, status_code, params
 
-    def delete_old_file(self, new_filename):
-        name, page = new_filename.split('_')
-        path = f'{BASE_PATH}/files/{self.supplier}/feeds/{name}'
-        raw_filenames = os.listdir(path)
-
-        filenames = [re.search('\D*\d+', filename).group(0) for filename in raw_filenames]
-        if new_filename in filenames:
-            duplicates = [filename for filename in raw_filenames if filename.startswith(new_filename)]
-            duplicates.sort()
-            if len(duplicates) > 1:
-                logger.info(f'Deleting {duplicates[0]}')
-                to_drop_filename = duplicates[0]
-                os.remove(f'{path}/{to_drop_filename}')
-
     # Please note, this can take a few minutes (around 5 I would say). Maybe async this later?
     def download(self, downloads):
         for row in downloads:
@@ -97,20 +69,16 @@ class BaseClient:
             # If row has more than 3 arguments, it's a list of params to pass to the request
             params = row[3] if len(row) > 3 else None
 
-            # Has to be here else we persist the status code over the various filenames
-            status_code = 200
-            while status_code in [200, 429, 404]:
-                if status_code == 404:
-                    logger.info(f'Reached end of {name}, starting from beginning')
-                    params['page'] = 0
 
+            # - I might be able to write this loop cleaner.
+            # - 'status_code = 200'Has to be here instead of as an argument to def download(),
+            #  else we persist the status code over the various filenames
+            status_code = 200
+            while status_code == 200:
+                page = params['page'] if params else ''
                 response, status_code, params = self.get_file(name, url, params)
 
-                if status_code == 429:
-                    logger.info(f'Max requests reached for {name}')
-                    break
-                elif status_code == 200:
-                    page = params['page'] if params else ''
+                if status_code == 200:
                     self.save_to_feeds(response, name, page, filetype=filetype)
 
                 if params is None:
@@ -154,14 +122,14 @@ class BigbuyClient(BaseClient):
         self.downloads = {
             'products': [f'{BB_BASE_URL}rest/catalog/products.json?isoCode=NL',
                          'json',
-                         {'pageSize': 25000}],
+                         {'page': 0, 'pageSize': 9900000}],
             'variants': [f'{BB_BASE_URL}rest/catalog/productsvariations.json?isoCode=NL',
                          'json',
-                         {'pageSize': 10000}],
+                         {'page': 0,
+                          'pageSize': 10000}],
             'productstock': [f'{BB_BASE_URL}rest/catalog/productsstock.json',
                              'json',
-                             {'pageSize': 25000}],
-
+                             {'page': 0, 'pageSize': 9900000}],
             'productdescriptions': [f'{BB_BASE_URL}rest/catalog/productsinformation.json?isoCode=NL',
                                     'json',
                                     None],
@@ -176,7 +144,7 @@ class BigbuyClient(BaseClient):
                                 None],
             'stock': [f'{BB_BASE_URL}rest/catalog/productsvariationsstock.json?isoCode=NL',
                       'json',
-                      {'pageSize': 10000}],
+                      {'page': 0, 'pageSize': 9900000}],
             'categories': [f'{BB_BASE_URL}rest/catalog/categories.json?isoCode=nl', 'json', None],
 
         }
