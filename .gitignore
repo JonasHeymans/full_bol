@@ -137,3 +137,8 @@ dmypy.json
 /mainapp/microservice_supplier/documentation/manual_b2b_feeds_2016.pdf
 /tmp/tmp/
 /mainapp/microservice_supplier/files/
+/sql/amazon.sql
+/sql/manual_update.sql
+/tmp/offers.csv
+/tmp/tmp.pkl
+/sql/update.sql
